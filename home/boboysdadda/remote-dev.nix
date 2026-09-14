@@ -18,6 +18,13 @@ let
         "exec /bin/zsh -l -c 'cd /Users/jdreier/Projects && exec tmux new-session -A -s $session'"
     '';
   };
+  studioDesktop = pkgs.writeShellApplication {
+    name = "studio-desktop";
+    runtimeInputs = [ pkgs.rustdesk-flutter ];
+    text = ''
+      exec rustdesk --connect 100.118.166.83:21118 "$@"
+    '';
+  };
 in
 {
   programs.ssh = {
@@ -41,6 +48,10 @@ in
     };
   };
 
-  home.packages = [ studio ];
+  home.packages = [
+    studio
+    studioDesktop
+    pkgs.rustdesk-flutter
+  ];
   programs.zsh.shellAliases.studio-code = "code --remote ssh-remote+studio /Users/jdreier/Projects";
 }

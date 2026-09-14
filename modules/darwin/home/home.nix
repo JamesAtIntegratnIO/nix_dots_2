@@ -3,7 +3,7 @@ let
   homePackages = import ./packages.nix { inherit pkgs; };
   opencodeModule = import ./opencode/default.nix { inherit pkgs username lib inputs; };
   hermesModule = import ./hermes/default.nix { inherit pkgs username lib inputs; };
-  remoteDevModule = import ./remote-dev.nix { };
+  remoteDevModule = import ./remote-dev.nix { inherit pkgs lib; };
 in
 lib.mkMerge [
   {

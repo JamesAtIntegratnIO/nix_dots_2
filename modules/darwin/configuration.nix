@@ -1,11 +1,23 @@
-{ pkgs, hostname, username, ... }:
+{
+  pkgs,
+  hostname,
+  username,
+  ...
+}:
 let
   packages = import ./packages.nix { inherit pkgs; };
+  rustdesk = pkgs.callPackage ./rustdesk-package.nix { };
 in
 {
-  imports = [ ./local-ai.nix ./docker.nix ];
+  imports = [
+    ./local-ai.nix
+    ./docker.nix
+  ];
 
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
 
   # Match this host's architecture (Apple Silicon Mac Studio).
   nixpkgs.hostPlatform = "aarch64-darwin";
@@ -36,6 +48,11 @@ in
   '';
 
   environment.systemPackages = packages.all;
+
+  system.activationScripts.postActivation.text = ''
+    /usr/bin/ditto "${rustdesk}/Applications/RustDesk.app" "/Applications/RustDesk.app"
+    /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "/Applications/RustDesk.app"
+  '';
 
   nix.enable = false;
 

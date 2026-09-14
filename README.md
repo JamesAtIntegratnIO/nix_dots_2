@@ -201,6 +201,27 @@ The local extension targets Cinnamon 6.6. Workspaces span monitors, so this diff
 from macOS's per-monitor Spaces. The extension can be disabled in Cinnamon's
 Extensions settings.
 
+## Studio remote desktop
+
+Run `studio-desktop` on the laptop to open RustDesk directly to the Mac Studio
+over Tailscale (`100.118.166.83:21118`). Both apps are installed through Nix:
+Linux uses `rustdesk-flutter`; macOS uses the checksum-pinned official Apple
+Silicon app in `modules/darwin/rustdesk-package.nix`. The Mac app is copied to
+`/Applications/RustDesk.app` and its user launch agent starts at login.
+
+On the Mac, approve RustDesk under System Settings → Privacy & Security →
+Screen & System Audio Recording, Accessibility, and Input Monitoring if requested.
+In RustDesk → Settings → Security, set a permanent password for unattended
+access. Save it in your password manager; passwords and RustDesk identity files
+are not managed by this repository. The laptop client can remember the password.
+
+The Mac configuration merges direct-access settings into its existing
+`RustDesk2.toml`, preserving credentials. Its IP whitelist permits this laptop's
+Tailscale address (`100.91.78.45`); update it when adding another client. Direct
+connections need no public relay server or router port forwarding. The user
+agent runs after Mac login; access before login requires RustDesk's privileged
+service setup. macOS permission approvals cannot be provisioned by this flake.
+
 ## Adding another host
 
 Create `hosts/<hostname>/default.nix` and its generated hardware configuration,
