@@ -133,6 +133,38 @@ Access to services is still controlled by their listeners, host firewalls, and
 your tailnet policy. Test access from another network before relying on it
 while traveling, including after a reboot and FileVault unlock.
 
+## Remote development on the Studio
+
+The laptop's `home/boboysdadda/remote-dev.nix` provides a verified SSH host key
+and the `studio` alias for `jdreier@mac-studio.chimera-mooneye.ts.net`.
+Connections use SSH keys, share a connection for ten minutes, and send
+keepalives to detect a dropped network connection.
+
+| Command | Behavior |
+| --- | --- |
+| `ssh studio` | Open a shell on the Mac over Tailscale |
+| `studio` | Create or reattach to the persistent `dev` tmux session in `~/Projects` |
+| `studio my-project` | Create or reattach to a named session |
+| `scp ./file studio:Projects/` | Copy a file to the Studio |
+| `studio-code` | Open the Studio's Projects directory in VS Code Remote SSH |
+| `ssh -N -L 3000:127.0.0.1:3000 studio` | Access the Studio's port 3000 at laptop `localhost:3000` |
+
+Detach from tmux with `Ctrl+Space`, then `d`; reconnect with the same `studio`
+command. If inside the laptop's tmux already, press `Ctrl+Space` twice to send
+the prefix to the remote tmux. Processes survive disconnections, but not a Mac
+reboot. VS Code Remote SSH and the `studio-code` alias are managed by the
+laptop's Home Manager configuration and take effect after rebuilding.
+
+For immediate use, the SSH configuration and Studio tmux configuration were
+built through Nix and linked into place, with GC roots under each user's
+`~/.local/state/nix/remote-dev`. The laptop's `studio` command and the Mac's
+tmux package were also installed in their Nix user profiles. The next system
+rebuild manages these tools through Home Manager as well.
+
+The host key pin is public, not a login credential. If the Mac is reinstalled
+or its SSH keys are rotated, verify the replacement key on the Mac before
+updating this module. The SSH configuration deliberately checks this key.
+
 ## AI
 
 `home/boboysdadda/ai.nix` manages the AI tools:

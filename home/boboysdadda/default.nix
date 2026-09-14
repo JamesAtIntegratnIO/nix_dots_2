@@ -6,6 +6,7 @@
     ./cinnamon.nix
     ./development.nix
     ./git.nix
+    ./remote-dev.nix
     ./shell.nix
   ];
 

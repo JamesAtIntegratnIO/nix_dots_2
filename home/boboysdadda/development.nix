@@ -22,12 +22,16 @@
     nixfmt-tree
     shellcheck
     shfmt
-    vscode
     yaml-language-server
     yq-go
   ];
 
   programs = {
+    vscode = {
+      enable = true;
+      profiles.default.extensions = [ pkgs.vscode-extensions.ms-vscode-remote.remote-ssh ];
+    };
+
     direnv = {
       enable = true;
       nix-direnv.enable = true;
