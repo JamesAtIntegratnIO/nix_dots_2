@@ -1,0 +1,7 @@
+{
+  "uuid": "fullscreen-spaces@local",
+  "name": "Fullscreen Spaces",
+  "description": "Give fullscreen windows a workspace and restore their original workspace on exit.",
+  "version": 1,
+  "cinnamon-version": ["6.6"]
+}

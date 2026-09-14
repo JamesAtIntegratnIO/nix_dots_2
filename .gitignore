@@ -1,0 +1,10 @@
+# Flake build results
+/result
+/result-*
+
+# Editor and OS files
+/.direnv
+/.envrc
+*.swp
+*~
+.DS_Store
