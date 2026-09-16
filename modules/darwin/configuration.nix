@@ -12,6 +12,7 @@ in
   imports = [
     ./local-ai.nix
     ./docker.nix
+    ./github-runner.nix
   ];
 
   nix.settings.experimental-features = [

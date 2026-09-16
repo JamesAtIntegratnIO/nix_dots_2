@@ -1,0 +1,96 @@
+{ pkgs, lib, username, ... }:
+let
+  runnerUser = "ghrunner";
+  runnerHome = "/Users/${runnerUser}";
+
+  # Each registered runner instance, as a directory under
+  # ${runnerHome}/actions-runner. A runner's scope is fixed when it is
+  # registered and no workflow can widen it, so a repository that wants this
+  # workstation needs an instance of its own here. Registration itself stays
+  # manual, because it mints a credential; this only supervises what exists.
+  instances = [ "runwright" "specmarshal" ];
+
+  # colima publishes the docker socket into the owning user's home as 0600 and
+  # recreates it on every start, so it cannot simply be chmod'd once. socat
+  # relays it instead: root can open colima's socket, and the copy it publishes
+  # is owned by the runner account alone.
+  colimaSocket = "/Users/${username}/.colima/default/docker.sock";
+  runnerSocket = "/var/run/docker-${runnerUser}.sock";
+
+  # What a job on this runner gets on PATH. /run/current-system/sw/bin carries
+  # the docker CLI — nixpkgs' docker on darwin is client-only, which is what
+  # colima's daemon is for — and the nix profile carries nix itself, which a
+  # project whose gate runs in a dev shell needs.
+  runnerPath = lib.concatStringsSep ":" [
+    "/usr/local/bin"
+    "/usr/bin"
+    "/bin"
+    "/usr/sbin"
+    "/sbin"
+    "/run/current-system/sw/bin"
+    "/nix/var/nix/profiles/default/bin"
+    "/opt/homebrew/bin"
+    "${runnerHome}/.local/bin"
+    "${runnerHome}/go/bin"
+  ];
+
+  # nix-darwin names a plist after its Label, so these adopt the
+  # /Library/LaunchDaemons files the instances were first installed with by
+  # hand rather than running a second copy of each alongside them.
+  runnerDaemon = instance:
+    let dir = "${runnerHome}/actions-runner/${instance}";
+    in {
+      name = instance;
+      value.serviceConfig = {
+        Label = "io.integratn.${runnerUser}.${instance}";
+        UserName = runnerUser;
+        WorkingDirectory = dir;
+        ProgramArguments = [ "${dir}/bin/runsvc.sh" ];
+        KeepAlive = true;
+        RunAtLoad = true;
+        SessionCreate = true;
+        ProcessType = "Standard";
+        StandardOutPath = "${dir}/_diag/daemon.out.log";
+        StandardErrorPath = "${dir}/_diag/daemon.err.log";
+        EnvironmentVariables = {
+          PATH = runnerPath;
+          HOME = runnerHome;
+          DOCKER_HOST = "unix://${runnerSocket}";
+        };
+      };
+    };
+in
+{
+  # The account the runners run as: no shell and no password, because nothing
+  # ever logs into it. It predates this module, so uid and gid restate what it
+  # was created with rather than choosing anything.
+  users.knownUsers = [ runnerUser ];
+  users.users.${runnerUser} = {
+    uid = 502;
+    gid = 20;
+    home = runnerHome;
+    shell = "/usr/bin/false";
+    ignoreShellProgramCheck = true;
+    isHidden = true;
+    description = "GitHub Actions self-hosted runner";
+  };
+
+  launchd.daemons = {
+    # unlink-early clears a socket left behind by an unclean stop. KeepAlive
+    # covers the ordering: this starts before colima's user agent has a socket
+    # to connect to, and simply retries until it does.
+    docker-runner-socket.serviceConfig = {
+      Label = "io.integratn.${runnerUser}.docker-socket";
+      ProgramArguments = [
+        "${pkgs.socat}/bin/socat"
+        "UNIX-LISTEN:${runnerSocket},fork,unlink-early,user=${runnerUser},group=staff,mode=0600"
+        "UNIX-CONNECT:${colimaSocket}"
+      ];
+      KeepAlive = true;
+      RunAtLoad = true;
+      ProcessType = "Background";
+      StandardOutPath = "/var/log/docker-${runnerUser}-socket.log";
+      StandardErrorPath = "/var/log/docker-${runnerUser}-socket.err";
+    };
+  } // builtins.listToAttrs (map runnerDaemon instances);
+}
