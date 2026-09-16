@@ -3,8 +3,8 @@ let
   logDir = "/Users/${username}/Library/Logs/colima";
 
   # VM sizing for the Linux guest that hosts the docker daemon.
-  cpus = "4";
-  memory = "8";
+  cpus = "12";
+  memory = "32";
   disk = "100";
 in
 {
