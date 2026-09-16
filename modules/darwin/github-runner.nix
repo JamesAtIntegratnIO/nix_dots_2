@@ -67,6 +67,13 @@ let
           PATH = runnerPath;
           HOME = runnerHome;
           DOCKER_HOST = "unix://${runnerSocket}";
+          # Every instance runs as the same account, so they would otherwise
+          # share one ~/.docker: a single buildx state directory and a single
+          # config.json holding the registry login. Concurrent jobs then create
+          # and remove builders in each other's state, which surfaces as a build
+          # that completes every layer and then loses its builder while loading
+          # the image. One config directory per instance keeps them apart.
+          DOCKER_CONFIG = "${dir}/.docker";
         };
       };
     };
