@@ -8,7 +8,18 @@ let
   # registered and no workflow can widen it, so a repository that wants this
   # workstation needs an instance of its own here. Registration itself stays
   # manual, because it mints a credential; this only supervises what exists.
-  instances = [ "runwright" "specmarshal" ];
+  #
+  # specmarshal has four, because an instance takes one job at a time and its
+  # image matrix fans out to five arm64 builds. On one instance those queue
+  # behind each other and the run takes longer in wall clock than it did on
+  # hosted runners, even though it now costs nothing.
+  instances = [
+    "runwright"
+    "specmarshal"
+    "specmarshal-2"
+    "specmarshal-3"
+    "specmarshal-4"
+  ];
 
   # colima publishes the docker socket into the owning user's home as 0600 and
   # recreates it on every start, so it cannot simply be chmod'd once. socat
