@@ -27,6 +27,11 @@ in
         "--cpu" cpus
         "--memory" memory
         "--disk" disk
+        # amd64 containers run under Rosetta, not colima's qemu 7.0, which
+        # crashes Go 1.26 binaries and Chromium. The workstation's runner builds
+        # and smoke-tests specmarshal's amd64 images this way.
+        "--vm-type" "vz"
+        "--vz-rosetta"
       ];
       EnvironmentVariables = {
         HOME = "/Users/${username}";
