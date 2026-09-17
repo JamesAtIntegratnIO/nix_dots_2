@@ -31,6 +31,11 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -55,6 +60,12 @@
         specialArgs = { inherit inputs; };
 
         modules = [ ./hosts/nixos ];
+      };
+
+      nixosConfigurations.ghrunner = nixpkgs.lib.nixosSystem {
+        inherit system;
+        specialArgs = { inherit inputs; };
+        modules = [ ./hosts/ghrunner ];
       };
 
       formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt-tree;
