@@ -97,18 +97,29 @@ in
     # unlink-early clears a socket left behind by an unclean stop. KeepAlive
     # covers the ordering: this starts before colima's user agent has a socket
     # to connect to, and simply retries until it does.
-    docker-runner-socket.serviceConfig = {
-      Label = "io.integratn.${runnerUser}.docker-socket";
-      ProgramArguments = [
+    #
+    # It is a `command`, not ProgramArguments, so nix-darwin wraps it in
+    # `/bin/wait4path /nix/store`. At boot launchd starts system daemons before
+    # the Nix volume is mounted; given socat's store path directly it logged
+    # "Missing executable detected", marked the job inactive (exit 78,
+    # EX_CONFIG) and never retried it — KeepAlive does not cover a job launchd
+    # thinks has no program. The runners then had no docker socket until someone
+    # booted the job out and back in. The runner daemons below need no such
+    # guard: their program lives in the runner's home, not the store.
+    docker-runner-socket = {
+      command = lib.escapeShellArgs [
         "${pkgs.socat}/bin/socat"
         "UNIX-LISTEN:${runnerSocket},fork,unlink-early,user=${runnerUser},group=staff,mode=0600"
         "UNIX-CONNECT:${colimaSocket}"
       ];
-      KeepAlive = true;
-      RunAtLoad = true;
-      ProcessType = "Background";
-      StandardOutPath = "/var/log/docker-${runnerUser}-socket.log";
-      StandardErrorPath = "/var/log/docker-${runnerUser}-socket.err";
+      serviceConfig = {
+        Label = "io.integratn.${runnerUser}.docker-socket";
+        KeepAlive = true;
+        RunAtLoad = true;
+        ProcessType = "Background";
+        StandardOutPath = "/var/log/docker-${runnerUser}-socket.log";
+        StandardErrorPath = "/var/log/docker-${runnerUser}-socket.err";
+      };
     };
   } // builtins.listToAttrs (map runnerDaemon instances);
 }
