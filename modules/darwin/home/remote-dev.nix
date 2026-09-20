@@ -1,7 +1,10 @@
 { pkgs, lib, ... }:
 
+let
+  rustdesk = pkgs.callPackage ../rustdesk-package.nix { };
+in
 {
-  home.packages = [ (pkgs.callPackage ../rustdesk-package.nix { }) ];
+  home.packages = [ rustdesk ];
   # Merge connection settings into the mutable app config; identities and
   # passwords stay outside the Nix store and Git.
   home.activation.rustdeskSettings = lib.hm.dag.entryBetween [ "setupLaunchAgents" ] [ "writeBoundary" ] ''
@@ -10,7 +13,9 @@
   launchd.agents.rustdesk = {
     enable = true;
     config = {
-      ProgramArguments = [ "/Applications/RustDesk.app/Contents/MacOS/RustDesk" ];
+      # The store path, not /Applications: nothing copies bundles there any
+      # more, so a /Applications path would break at login.
+      ProgramArguments = [ "${rustdesk}/Applications/RustDesk.app/Contents/MacOS/RustDesk" ];
       RunAtLoad = true;
       KeepAlive = {
         SuccessfulExit = false;
