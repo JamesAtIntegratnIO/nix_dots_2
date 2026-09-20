@@ -12,13 +12,13 @@ _: prev:
   lmstudio = prev.lmstudio.overrideAttrs (
     _:
     let
-      version = "0.4.17-4";
+      version = "0.4.25-1";
     in
     {
       inherit version;
       src = prev.fetchurl {
         url = "https://installers.lmstudio.ai/darwin/arm64/${version}/LM-Studio-${version}-arm64.dmg";
-        sha256 = "sha256-r8LykADF4Lw6jVucPIwyUXOUyBxOjvgQUU0XpGhY02E=";
+        sha256 = "sha256-i6uFfD0pAOFKtGQ18NFHHeBo8WXnYbucF3CT6KJeF3Q=";
       };
     }
   );
