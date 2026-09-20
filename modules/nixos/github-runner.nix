@@ -2,16 +2,27 @@
 let
   runnerUser = "ghrunner";
 
-  # Same instances as modules/darwin/github-runner.nix, for the same reasons:
-  # scope is fixed at registration, and one instance takes one job at a time.
-  # Each maps to the repository it registers against.
+  # Scope is fixed at registration and one instance takes one job at a time, so
+  # a repository that wants this host needs an instance of its own here.
+  #
+  # specmarshal has eight rather than the darwin module's four. This host is
+  # x86_64, so it takes the image matrix's amd64 leg natively instead of the
+  # Mac's Rosetta emulation, and that leg fans out to five builds: four
+  # instances leave the fifth queueing behind the others. Eight covers one
+  # wave with room for a second pull request's, and matches the VM's eight
+  # vCPU against its 24G of memory.
+  specmarshalInstances = 8;
+
   instances = {
     runwright = "JamesAtIntegratnIO/runwright";
-    specmarshal = "IntegratnIO/specmarshal";
-    specmarshal-2 = "IntegratnIO/specmarshal";
-    specmarshal-3 = "IntegratnIO/specmarshal";
-    specmarshal-4 = "IntegratnIO/specmarshal";
-  };
+  } // builtins.listToAttrs (
+    map
+      (n: {
+        name = if n == 1 then "specmarshal" else "specmarshal-${toString n}";
+        value = "IntegratnIO/specmarshal";
+      })
+      (lib.range 1 specmarshalInstances)
+  );
 
   # The registration token each instance consumes on first start. It expires
   # within the hour, but the module only needs it once: the credential it mints
