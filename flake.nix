@@ -14,6 +14,12 @@
       url = "github:lnl7/nix-darwin";
       inputs.nixpkgs.follows = "darwin-nixpkgs";
     };
+    # Trampoline .app wrappers so Spotlight and Launchpad index Nix apps.
+    mac-app-util = {
+      url = "github:hraban/mac-app-util";
+      inputs.nixpkgs.follows = "darwin-nixpkgs";
+    };
+
     openspec.url = "github:Fission-AI/OpenSpec";
     hermes-agent.url = "github:NousResearch/hermes-agent/v2026.6.19";
 
