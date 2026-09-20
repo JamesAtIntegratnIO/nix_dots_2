@@ -75,8 +75,8 @@ Its imported system, Home Manager, OpenCode, and Hermes modules live under
 `modules/darwin`; `home/jdreier/default.nix` is the user entry point.
 Mac-specific service and agent documentation is under `docs/mac-studio`.
 
-The import preserves the Mac's original package pins, LM Studio overlay and
-copied `/Applications/LM Studio.app` bundle, Qdrant and Colima launchd agents,
+The import preserves the Mac's original package pins, LM Studio overlay,
+Qdrant and Colima launchd agents,
 Docker plugins, shell/Git settings, and OpenCode/Hermes configuration and skills.
 Ollama stays installed with its service disabled. Existing data and credentials
 remain at their original `/Users/jdreier` paths. Nix management stays disabled
@@ -206,8 +206,9 @@ Extensions settings.
 Run `studio-desktop` on the laptop to open RustDesk directly to the Mac Studio
 over Tailscale (`100.118.166.83:21118`). Both apps are installed through Nix:
 Linux uses `rustdesk-flutter`; macOS uses the checksum-pinned official Apple
-Silicon app in `modules/darwin/rustdesk-package.nix`. The Mac app is copied to
-`/Applications/RustDesk.app` and its user launch agent starts at login.
+Silicon app in `modules/darwin/rustdesk-package.nix`. The Mac app is installed
+through `environment.systemPackages`, so `mac-app-util` gives it a Spotlight
+trampoline, and its user launch agent starts at login.
 
 On the Mac, approve RustDesk under System Settings → Privacy & Security →
 Screen & System Audio Recording, Accessibility, and Input Monitoring if requested.

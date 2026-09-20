@@ -145,15 +145,9 @@ The overlay in `modules/darwin/overlays.nix` does two things via `nixpkgs.overla
 
 ### Activation Scripts
 
-Two custom activation scripts:
+One custom activation script:
 
-1. **`system.activationScripts.applications`** (overridden in `configuration.nix`):
-   - Finds the LM Studio `.app` bundle inside the Nix store
-   - Copies it to `/Applications/LM Studio.app` using `ditto`
-   - Runs `lsregister` to register with LaunchServices
-   - Uses `mkForce` to replace the default nix-darwin symlink approach
-
-2. **`system.activationScripts.localAiDirs`** (defined in `local-ai.nix`):
+1. **`system.activationScripts.localAiDirs`** (defined in `local-ai.nix`):
    - Creates log and data directories under `~/Library/`
    - Chowns everything to the current user
 
@@ -194,13 +188,21 @@ Because it's pure, the same function can be composed in multiple contexts:
 
 The opencode-specific module (`modules/darwin/home/opencode/default.nix`) is the **concrete consumer** — it provides the actual models, agents, skills, and MCP servers that get passed into `mkOpencodeEnv`.
 
-## LM Studio App Bundle
+## GUI App Discovery
 
-LM Studio requires special handling because macOS LaunchServices cannot reliably discover `.app` bundles that are symlinks in `/Applications`. The solution:
+Spotlight does not reliably index the `/Applications/Nix Apps` folder that
+nix-darwin populates, so Nix-installed apps were historically invisible to
+`⌘ space`.
 
-1. The `lmstudio` package provides the app bundle inside the Nix store
-2. The activation script finds the `.app` directory inside the store
-3. It uses `ditto` (not a symlink) to copy the bundle to `/Applications/LM Studio.app`
-4. It runs `lsregister` to force LaunchServices / Spotlight to rediscover the app
+[`mac-app-util`](https://github.com/hraban/mac-app-util) is imported as a
+darwin module in `hosts/mac-studio/default.nix`. On each switch it builds
+trampoline `.app` wrappers under `/Applications/Nix Trampolines` for
+everything in `environment.systemPackages`. Trampolines are real bundles
+rather than symlinks, so Spotlight and Launchpad index them, and they keep
+working across store path changes.
 
-This is why `system.activationScripts.applications` is overridden with `mkForce` — the entire default nix-darwin application activation script is replaced.
+This replaced a hand-rolled activation script that `ditto`-copied LM Studio
+into `/Applications`. That script used `mkForce`, which dropped nix-darwin's
+own applications activation entirely — so no other packaged app reached
+`/Applications/Nix Apps` at all, and RustDesk needed a second copy of the
+same hack. Both are gone; RustDesk is now an ordinary `systemPackages` entry.
