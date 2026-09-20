@@ -57,6 +57,22 @@ let
   };
 in
 {
+  # Actions that provision a toolchain — actions/setup-node above all — download
+  # a generic linux-x86_64 tarball and run it. Those binaries expect an
+  # interpreter at /lib64/ld-linux-x86-64.so.2, which NixOS does not have, so
+  # every such step dies with "Could not start dynamically linked executable".
+  # nix-ld supplies the interpreter and the libraries the tarballs link against,
+  # which keeps the workflows arch-agnostic: they run the same steps here as on
+  # the Mac rather than branching on which host took the job.
+  programs.nix-ld = {
+    enable = true;
+    libraries = with pkgs; [
+      stdenv.cc.cc.lib
+      zlib
+      openssl
+    ];
+  };
+
   virtualisation.docker = {
     enable = true;
     autoPrune.enable = true;
