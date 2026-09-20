@@ -32,10 +32,9 @@ in
 
   programs.zsh.enable = true;
 
-  # mac-app-util (imported by this host) creates trampoline .app wrappers that
-  # Spotlight and Launchpad index, so GUI apps no longer need to be copied into
-  # /Applications by hand. RustDesk is listed here rather than copied during
-  # activation so it gets a trampoline like everything else.
+  # nix-darwin rsyncs these into /Applications/Nix Apps as real bundles, which
+  # Spotlight and LaunchServices both index -- no hand-copying needed. RustDesk
+  # is listed here rather than copied during activation for the same reason.
   environment.systemPackages = packages.all ++ [ rustdesk ];
 
   nix.enable = false;

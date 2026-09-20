@@ -190,19 +190,24 @@ The opencode-specific module (`modules/darwin/home/opencode/default.nix`) is the
 
 ## GUI App Discovery
 
-Spotlight does not reliably index the `/Applications/Nix Apps` folder that
-nix-darwin populates, so Nix-installed apps were historically invisible to
-`⌘ space`.
+nix-darwin's stock applications activation rsyncs everything in
+`environment.systemPackages` into `/Applications/Nix Apps` as **real** bundles
+(`--copy-unsafe-links` turns the store symlinks into directories). Spotlight
+indexes them and LaunchServices registers them, so `⌘ space` finds them with
+no extra machinery.
 
-[`mac-app-util`](https://github.com/hraban/mac-app-util) is imported as a
-darwin module in `hosts/mac-studio/default.nix`. On each switch it builds
-trampoline `.app` wrappers under `/Applications/Nix Trampolines` for
-everything in `environment.systemPackages`. Trampolines are real bundles
-rather than symlinks, so Spotlight and Launchpad index them, and they keep
-working across store path changes.
+This replaced a hand-rolled activation script that `ditto`-copied LM Studio to
+`/Applications/LM Studio.app`. That script used `mkForce`, which dropped the
+stock activation entirely — so `/Applications/Nix Apps` was never populated,
+which is what made Nix apps look un-discoverable in the first place. RustDesk
+needed a second copy of the same hack for the same reason. Both are gone.
 
-This replaced a hand-rolled activation script that `ditto`-copied LM Studio
-into `/Applications`. That script used `mkForce`, which dropped nix-darwin's
-own applications activation entirely — so no other packaged app reached
-`/Applications/Nix Apps` at all, and RustDesk needed a second copy of the
-same hack. Both are gone; RustDesk is now an ordinary `systemPackages` entry.
+Two notes for anyone debugging this again:
+
+- `mac-app-util` does **not** help here. Since nix-darwin 25.11 it deliberately
+  no-ops unless the source directory is a symlink (`sync-trampolines` calls
+  `rm -rf` on its target, then checks `symlinked-dir-p`), because real copies
+  need no trampolines.
+- Removing the old activation script leaves a stale `/Applications/LM
+  Studio.app` behind. Nothing deletes it, and it shadows the current version in
+  Spotlight and the Dock. Delete it once by hand.
