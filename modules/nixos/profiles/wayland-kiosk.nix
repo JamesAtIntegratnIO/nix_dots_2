@@ -1,6 +1,6 @@
 # Minimal Wayland desktop sized for the PocketTerm35's 640x480 panel: greetd
 # autologins jdreier into Sway with a Waybar status bar, foot terminal, and
-# fuzzel launcher. Deliberately lean -- no full DE.
+# fuzzel launcher, themed with Catppuccin Mocha. Deliberately lean -- no full DE.
 {
   lib,
   pkgs,
@@ -10,13 +10,19 @@
 let
   user = "jdreier";
 
+  # Subtle vertical-gradient wallpaper (Catppuccin base tones).
+  wallpaper = pkgs.runCommand "pocketterm-wall.png" {
+    nativeBuildInputs = [ pkgs.imagemagick ];
+  } "magick -size 640x480 gradient:'#181825'-'#1e1e2e' $out";
+
   # Waybar tuned for the tiny screen: short height, compact modules. No battery
   # module (the UPS is not exposed to Linux) and no backlight (firmware-side).
   waybarConfig = pkgs.writeText "waybar-config" (
     builtins.toJSON {
       layer = "top";
       position = "top";
-      height = 22;
+      height = 24;
+      spacing = 4;
       modules-left = [ "sway/workspaces" ];
       modules-center = [ "clock" ];
       modules-right = [
@@ -64,11 +70,63 @@ let
       font-size: 12px;
       min-height: 0;
     }
-    window#waybar { background: #1e1e2e; color: #cdd6f4; }
-    #workspaces button { padding: 0 4px; color: #cdd6f4; background: transparent; }
-    #workspaces button.focused { background: #45475a; }
-    #clock, #cpu, #temperature, #network, #pulseaudio { padding: 0 6px; }
+    window#waybar { background: #181825; color: #cdd6f4; }
+    #workspaces button { padding: 0 6px; color: #a6adc8; background: transparent; }
+    #workspaces button.focused { background: #313244; color: #89b4fa; }
+    #clock { color: #f9e2af; }
+    #cpu { color: #a6e3a1; }
+    #temperature { color: #fab387; }
+    #network { color: #89b4fa; }
+    #pulseaudio { color: #f5c2e7; }
+    #clock, #cpu, #temperature, #network, #pulseaudio { padding: 0 8px; }
     #temperature.critical { color: #f38ba8; }
+  '';
+
+  # foot: Catppuccin Mocha, readable font, small padding. foot supports
+  # touchscreen selection, so tap-drag highlights text.
+  footConfig = pkgs.writeText "foot.ini" ''
+    font=JetBrainsMono Nerd Font:size=11
+    pad=6x6
+    dpi-aware=no
+
+    [cursor]
+    style=beam
+
+    [mouse]
+    hide-when-typing=yes
+
+    [colors]
+    background=1e1e2e
+    foreground=cdd6f4
+    regular0=45475a
+    regular1=f38ba8
+    regular2=a6e3a1
+    regular3=f9e2af
+    regular4=89b4fa
+    regular5=f5c2e7
+    regular6=94e2d5
+    regular7=bac2de
+    bright0=585b70
+    bright1=f38ba8
+    bright2=a6e3a1
+    bright3=f9e2af
+    bright4=89b4fa
+    bright5=f5c2e7
+    bright6=94e2d5
+    bright7=a6adc8
+    selection-foreground=1e1e2e
+    selection-background=f5e0dc
+  '';
+
+  makoConfig = pkgs.writeText "mako-config" ''
+    background-color=#1e1e2e
+    text-color=#cdd6f4
+    border-color=#89b4fa
+    border-radius=6
+    border-size=2
+    font=JetBrainsMono Nerd Font 11
+    default-timeout=5000
+    width=320
   '';
 
   # Sway config for a 640x480 display: big-ish font, no title bars or gaps, touch
@@ -78,12 +136,11 @@ let
     set $term foot
 
     output * mode 640x480
-    output * bg #1e1e2e solid_color
+    output * bg ${wallpaper} fill
 
     font pango:monospace 9
     default_border none
     gaps inner 0
-    titlebar_padding 1
 
     input type:touch {
       map_to_output "*"
@@ -92,6 +149,9 @@ let
     # Desktop services
     exec waybar
     exec mako
+    # Mirror the primary selection into the clipboard, so tap-drag to highlight
+    # (in foot or anywhere) is immediately pasteable with Ctrl+V everywhere.
+    exec wl-paste --primary --watch wl-copy
 
     bindsym $mod+Return exec $term
     bindsym $mod+q kill
@@ -99,6 +159,10 @@ let
     bindsym $mod+e exec firefox
     bindsym $mod+f exec pcmanfm
     bindsym $mod+Shift+e exit
+
+    # Screenshots: whole screen to clipboard, or region (drag with touch/trackpad).
+    bindsym $mod+s exec grim - | wl-copy
+    bindsym $mod+Shift+s exec grim -g "$(slurp)" - | wl-copy
 
     # Function-row hardware keys.
     bindsym XF86MonBrightnessUp   exec brightnessctl set +10%
@@ -132,6 +196,8 @@ in
   environment.etc."sway/config".source = lib.mkForce swayConfig;
   environment.etc."xdg/waybar/config".source = waybarConfig;
   environment.etc."xdg/waybar/style.css".source = waybarStyle;
+  environment.etc."xdg/foot/foot.ini".source = footConfig;
+  environment.etc."xdg/mako/config".source = makoConfig;
 
   services.greetd = {
     enable = true;
@@ -154,7 +220,7 @@ in
 
   environment.systemPackages = with pkgs; [
     # Session
-    foot # terminal
+    foot # terminal (touchscreen selection)
     fuzzel # app launcher
     waybar # status bar
     mako # notifications
@@ -172,7 +238,7 @@ in
 
     # Utilities
     brightnessctl
-    wl-clipboard
+    wl-clipboard # wl-copy / wl-paste (clipboard + primary mirror)
     grim # screenshots
     slurp
   ];
