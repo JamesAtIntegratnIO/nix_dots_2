@@ -38,6 +38,19 @@
         value = "on";
       };
     };
+    dt-overlays = {
+      # The built-in RP2040 keyboard/trackpad hangs off the Pi 5's internal USB2
+      # (dwc2) controller, which must be put in host mode to enumerate it. The
+      # base config only does this under [cm5], so the Pi 5 model B needs it here
+      # -- without it there is no keyboard at all.
+      dwc2 = {
+        enable = true;
+        params.dr_mode = {
+          enable = true;
+          value = "host";
+        };
+      };
+    };
   };
 
   # Goodix GT911 touch controller on I2C-1, merged into the board DTB at build
