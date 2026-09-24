@@ -11,16 +11,6 @@
   ...
 }:
 
-let
-  # Waveshare's 3.5" HDMI/touch overlay bundle. The `-5b` variant is the one to
-  # use even on a Pi 4B: it declares the GT911 at both 0x14 and 0x5d, whereas
-  # the `-4b` variant only declares 0x14, and the panel answers at 0x5d.
-  waveshareDtbo = pkgs.fetchzip {
-    url = "https://files.waveshare.com/wiki/common/3.5HDMI_E_DTBO.zip";
-    hash = "sha256-JBSnjkm7STjq83rJMtJX/CBP7GLUSR4Eux5b2Vp1KwE=";
-    stripRoot = true;
-  };
-in
 {
   imports = with nixos-raspberrypi.nixosModules; [
     raspberry-pi-5.base
@@ -50,12 +40,59 @@ in
     };
   };
 
-  # Apply the touch overlay at build time so the compiled DTB already targets
-  # i2c1/gpio; no need to drop a .dtbo into the firmware partition by hand.
+  # Goodix GT911 touch controller on I2C-1, merged into the board DTB at build
+  # time. This is Waveshare's `waveshare-35dpi-5b` overlay rewritten as source:
+  # the shipped .dtbo declares `compatible = "brcm,bcm2835"` and the panel can
+  # sit at either 0x14 or 0x5d, so both nodes are kept. `compatible` is set to
+  # the Pi 5's `brcm,bcm2712` so nixpkgs' overlay applier actually matches it,
+  # and `filter = "rpi-5-b"` scopes application to the Pi 5 model-B board DTBs
+  # only -- without it the applier also tries `overlays/hat_map.dtb`, which is
+  # itself an overlay and fails with FDT_ERR_BADOFFSET.
   hardware.deviceTree.overlays = [
     {
       name = "waveshare-pocketterm35-touch";
-      dtboFile = "${waveshareDtbo}/waveshare-35dpi-5b.dtbo";
+      filter = "rpi-5-b";
+      dtsText = ''
+        /dts-v1/;
+        /plugin/;
+
+        / {
+          compatible = "brcm,bcm2712";
+
+          fragment@0 {
+            target = <&i2c1>;
+            __overlay__ {
+              #address-cells = <1>;
+              #size-cells = <0>;
+              status = "okay";
+
+              gt911_14: gt911@14 {
+                compatible = "goodix,gt911";
+                reg = <0x14>;
+                interrupt-parent = <&gpio>;
+                interrupts = <4 2>;
+                irq-gpios = <&gpio 4 2>;
+                touchscreen-size-x = <640>;
+                touchscreen-size-y = <480>;
+                touchscreen-x-mm = <70>;
+                touchscreen-y-mm = <53>;
+              };
+
+              gt911_5d: gt911@5d {
+                compatible = "goodix,gt911";
+                reg = <0x5d>;
+                interrupt-parent = <&gpio>;
+                interrupts = <4 2>;
+                irq-gpios = <&gpio 4 2>;
+                touchscreen-size-x = <640>;
+                touchscreen-size-y = <480>;
+                touchscreen-x-mm = <70>;
+                touchscreen-y-mm = <53>;
+              };
+            };
+          };
+        };
+      '';
     }
   ];
 
