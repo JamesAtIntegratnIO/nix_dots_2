@@ -17,7 +17,7 @@ let
   # the `-4b` variant only declares 0x14, and the panel answers at 0x5d.
   waveshareDtbo = pkgs.fetchzip {
     url = "https://files.waveshare.com/wiki/common/3.5HDMI_E_DTBO.zip";
-    hash = "sha256-vBhMJ6J1D7C9TIqhh3UTTQBtTdjBtBz/FpVki/8yUK0=";
+    hash = "sha256-JBSnjkm7STjq83rJMtJX/CBP7GLUSR4Eux5b2Vp1KwE=";
     stripRoot = true;
   };
 in
