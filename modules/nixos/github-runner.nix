@@ -30,6 +30,14 @@ let
   # writes these.
   tokenDir = "/var/lib/github-runner-tokens";
 
+  # Where each instance checks out and builds. The module's default is its
+  # RuntimeDirectory under /run, a tmpfs capped at a quarter of RAM (5.9G here)
+  # and shared by every instance; eight checkouts with their node_modules filled
+  # it and jobs died with "No space left on device". This puts them on the disk.
+  # HOME is the work dir too, so toolchain caches land here as well. Changing it
+  # re-registers every instance: run scripts/register-runner-nixos.sh after.
+  workRoot = "/var/lib/github-runner-work";
+
   runner = instance: repo: {
     name = instance;
     value = {
@@ -39,6 +47,7 @@ let
       tokenFile = "${tokenDir}/${instance}";
       extraLabels = [ "nix" ];
       replace = true;
+      workDir = "${workRoot}/${instance}";
       user = runnerUser;
       group = runnerUser;
       extraPackages = with pkgs; [
@@ -88,7 +97,12 @@ in
 
   nix.settings.trusted-users = [ runnerUser ];
 
-  systemd.tmpfiles.rules = [ "d ${tokenDir} 0700 root root -" ];
+  systemd.tmpfiles.rules = [
+    "d ${tokenDir} 0700 root root -"
+  ]
+  ++ map (instance: "d ${workRoot}/${instance} 0750 ${runnerUser} ${runnerUser} -") (
+    builtins.attrNames instances
+  );
 
   services.github-runners = lib.mapAttrs' runner instances;
 }
