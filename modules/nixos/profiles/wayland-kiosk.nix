@@ -82,20 +82,9 @@ let
     #temperature.critical { color: #f38ba8; }
   '';
 
-  # foot: Catppuccin Mocha, readable font, small padding. foot supports
-  # touchscreen selection, so tap-drag highlights text.
-  footConfig = pkgs.writeText "foot.ini" ''
-    font=JetBrainsMono Nerd Font:size=11
-    pad=6x6
-    dpi-aware=no
-
-    [cursor]
-    style=beam
-
-    [mouse]
-    hide-when-typing=yes
-
-    [colors]
+  # Catppuccin Mocha palette, shared by foot's dark and light color sections so
+  # the theme applies regardless of the compositor's light/dark preference.
+  footPalette = ''
     background=1e1e2e
     foreground=cdd6f4
     regular0=45475a
@@ -115,7 +104,25 @@ let
     bright6=94e2d5
     bright7=a6adc8
     selection-foreground=1e1e2e
-    selection-background=f5e0dc
+    selection-background=f5e0dc'';
+
+  # foot: Catppuccin Mocha, readable font, small padding. foot supports
+  # touchscreen selection, so tap-drag highlights text.
+  footConfig = pkgs.writeText "foot.ini" ''
+    font=JetBrainsMono Nerd Font:size=11
+    pad=6x6
+    dpi-aware=no
+
+    [cursor]
+    style=beam
+
+    [mouse]
+    hide-when-typing=yes
+
+    [colors-dark]
+    ${footPalette}
+    [colors-light]
+    ${footPalette}
   '';
 
   makoConfig = pkgs.writeText "mako-config" ''
