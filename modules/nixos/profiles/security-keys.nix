@@ -12,6 +12,14 @@
 {
   services.udev.packages = [ pkgs.yubikey-personalization ];
 
+  # Grant the active seat user direct access to the YubiKey's hidraw node
+  # (uaccess). The personalization rules above only tag the USB device, not the
+  # hidraw child the FIDO/CTAP2 stack talks to, so browsers only got partial
+  # passkey support. Vendor 1050 = Yubico; covers every YubiKey FIDO interface.
+  services.udev.extraRules = ''
+    KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1050", TAG+="uaccess", MODE="0660"
+  '';
+
   # fido2-token / fido2-cred for poking at the key from the terminal.
   environment.systemPackages = [ pkgs.libfido2 ];
 
