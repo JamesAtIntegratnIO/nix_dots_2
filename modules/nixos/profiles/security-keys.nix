@@ -27,5 +27,17 @@
   programs._1password-gui = {
     enable = true;
     polkitPolicyOwners = [ "jdreier" ];
+    # 1Password's Electron window is larger than the 640x480 panel. Render it at
+    # a smaller device-scale-factor so the whole UI fits, and run native Wayland.
+    # overrideAttrs keeps the package's `.override` that this module calls.
+    package = pkgs._1password-gui.overrideAttrs (old: {
+      postFixup = (old.postFixup or "") + ''
+        wrapProgram $out/bin/1password \
+          --add-flags "--ozone-platform-hint=auto --force-device-scale-factor=0.6"
+      '';
+    });
   };
+
+  # Prefer the Wayland backend for Electron/Chromium apps generally.
+  environment.sessionVariables.NIXOS_OZONE_WL = "1";
 }
