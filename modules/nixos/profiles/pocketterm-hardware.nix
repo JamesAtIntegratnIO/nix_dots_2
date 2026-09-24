@@ -22,6 +22,12 @@
   # deprecated "kernelboot" for the Pi 5).
   boot.loader.raspberry-pi.bootloader = "kernel";
 
+  # Audio: the chassis extracts audio from the HDMI signal (the same FPC that
+  # drives the panel) and feeds the speaker amp -- there is NO I2S/PWM DAC on the
+  # GPIO header. So do NOT add hifiberry-dac/audremap overlays; plain vc4 HDMI
+  # audio (already provided by display-vc4) is the speaker path. PipeWire uses
+  # the HDMI sink by default since it is the only real sink. Confirmed on device.
+
   # The panel supplies EDID over HDMI, but force the mode so it comes up at the
   # native 640x480 even before userspace reads the EDID.
   hardware.raspberry-pi.config.all = {
