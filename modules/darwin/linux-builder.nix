@@ -17,13 +17,16 @@
 
 let
   # Bumped resources over the defaults so building a full SD image has room.
+  # Sized for heavy builds (e.g. compiling the Pi 5 kernel from source) while
+  # leaving the 64GB / 16-core Studio comfortable headroom for macOS and its
+  # background services. 8GB was too little and the guest OOM-crashed mid-kernel.
   linuxBuilder = pkgs.darwin.linux-builder.override {
     modules = [
       {
-        virtualisation.cores = 8;
+        virtualisation.cores = 10;
         virtualisation.darwin-builder = {
-          memorySize = 8192; # MiB
-          diskSize = 51200; # MiB
+          memorySize = 24576; # MiB
+          diskSize = 65536; # MiB
         };
       }
     ];
@@ -35,7 +38,7 @@ let
 
   # <uri> <systems> <sshKey> <maxJobs> <speedFactor> <supportedFeatures> <mandatoryFeatures> <base64HostKey>
   machinesFile = pkgs.writeText "nix-machines" ''
-    ssh-ng://builder@linux-builder aarch64-linux /etc/nix/builder_ed25519 8 1 kvm,benchmark,big-parallel - ${publicHostKey}
+    ssh-ng://builder@linux-builder aarch64-linux /etc/nix/builder_ed25519 10 1 kvm,benchmark,big-parallel - ${publicHostKey}
   '';
 
   workingDirectory = "/var/lib/linux-builder";
