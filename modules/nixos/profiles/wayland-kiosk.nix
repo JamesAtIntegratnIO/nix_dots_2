@@ -2,6 +2,7 @@
 # autologins jdreier straight into Sway, with foot as the terminal. No display
 # manager, no desktop environment.
 {
+  lib,
   pkgs,
   ...
 }:
@@ -53,11 +54,12 @@ in
   programs.sway = {
     enable = true;
     wrapperFeatures.gtk = true;
-    extraOptions = [
-      "--config"
-      "${swayConfig}"
-    ];
   };
+
+  # greetd launches the plain `sway` binary, which reads /etc/sway/config -- so
+  # put our config there. (programs.sway.extraOptions only affects the `sway`
+  # wrapper, which greetd bypasses, so the upstream default config was winning.)
+  environment.etc."sway/config".source = lib.mkForce swayConfig;
 
   services.greetd = {
     enable = true;
