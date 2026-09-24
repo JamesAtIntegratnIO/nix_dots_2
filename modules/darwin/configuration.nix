@@ -13,6 +13,7 @@ in
     ./local-ai.nix
     ./docker.nix
     ./github-runner.nix
+    ./linux-builder.nix
   ];
 
   nix.settings.experimental-features = [

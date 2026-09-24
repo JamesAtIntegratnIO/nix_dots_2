@@ -78,6 +78,48 @@ Mac-specific service and agent documentation is under `docs/mac-studio`.
 The import preserves the Mac's original package pins, LM Studio overlay,
 Qdrant and Colima launchd agents,
 Docker plugins, shell/Git settings, and OpenCode/Hermes configuration and skills.
+
+## PocketTerm35 handheld
+
+`hosts/pocketterm/default.nix` composes the Waveshare PocketTerm35 (Raspberry
+Pi 5, 16GB). It is built with the `nixos-raspberrypi` flake's system builder so
+the Pi 5 vendor kernel and firmware are in scope, and it pulls those prebuilt
+artifacts from `nixos-raspberrypi.cachix.org` (declared in the flake's
+`nixConfig`; the host also trusts the cache at the system level).
+
+Its profiles under `modules/nixos/profiles`:
+
+- `pocketterm-hardware.nix` — Pi 5 boot/firmware, the 640x480 HDMI panel, and
+  the Goodix GT911 touch controller. The touch overlay is Waveshare's
+  `waveshare-35dpi-5b.dtbo`, pinned by hash and applied to the device tree at
+  build time.
+- `wayland-kiosk.nix` — greetd autologin straight into Sway (foot terminal,
+  fuzzel launcher), sized for the small screen, with the hardware
+  brightness/volume keys bound.
+- `pentest.nix` — wireless and serial-debugging toolkit for pairing with a Hak5
+  WiFi Pineapple Pager. The Pager appears as an RTL8153 USB-ethernet device and
+  serves DHCP on `172.16.52.0/24` (web UI at http://172.16.52.1:1471); keep
+  nothing else on that subnet.
+
+### First install (from the Mac Studio)
+
+Building the aarch64-linux image needs a Linux builder. The Studio runs one
+locally as a lightweight VM — see `modules/darwin/linux-builder.nix`. Because
+this host uses Determinate Nix (`nix.enable = false`), the standard
+`nix.linux-builder` module can't be used; instead the module runs the build VM
+via launchd and registers it in `/etc/nix/machines` (Determinate's nix.conf is
+left untouched). After a `darwin-rebuild switch`, the VM starts on demand and:
+
+```console
+nix build .#pocketterm-sdimage
+```
+
+Flash the result under `result/sd-image/` to the microSD card, boot the device,
+run `passwd` for the `jdreier` user, then deploy updates over SSH:
+
+```console
+nixos-rebuild switch --flake .#pocketterm --target-host jdreier@pocketterm --use-remote-sudo
+```
 Ollama stays installed with its service disabled. Existing data and credentials
 remain at their original `/Users/jdreier` paths. Nix management stays disabled
 in nix-darwin (`nix.enable = false`), as in the original configuration.
