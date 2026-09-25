@@ -4,7 +4,11 @@
 {
   pkgs,
   palette,
+  name ? "pocketterm-wallpaper",
   hostname ? "pocketterm",
+  # Top-right status label; the boot splash swaps it for "BOOTING".
+  statusText ? "● SYS ONLINE",
+  statusColor ? palette.green,
 }:
 
 let
@@ -121,7 +125,7 @@ let
       </g>
       <g font-family="${font}" font-size="9" letter-spacing="1">
         <text x="30" y="48" fill="#${p.overlay}">NODE::0x35</text>
-        <text x="610" y="48" fill="#${p.green}" text-anchor="end">● SYS ONLINE</text>
+        <text x="610" y="48" fill="#${statusColor}" text-anchor="end">${statusText}</text>
         <text x="30" y="460" fill="#${p.overlay}">640×480 · ARM64 · WAYLAND</text>
         <text x="610" y="460" fill="#${p.magenta}" fill-opacity="0.8" text-anchor="end">AUTHORIZED USE ONLY</text>
       </g>
@@ -130,7 +134,7 @@ let
     </svg>
   '';
 in
-pkgs.runCommand "pocketterm-wallpaper.png" { nativeBuildInputs = [ pkgs.resvg ]; } ''
+pkgs.runCommand "${name}.png" { nativeBuildInputs = [ pkgs.resvg ]; } ''
   resvg --skip-system-fonts \
     --use-fonts-dir ${pkgs.nerd-fonts.jetbrains-mono}/share/fonts \
     ${svg} $out

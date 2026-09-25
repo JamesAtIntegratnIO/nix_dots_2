@@ -13,6 +13,11 @@ let
   user = "jdreier";
   font = "JetBrainsMono Nerd Font";
 
+  plymouthTheme = import ./plymouth.nix {
+    inherit pkgs;
+    palette = p;
+  };
+
   wallpaper = import ./wallpaper.nix {
     inherit pkgs;
     palette = p;
@@ -167,7 +172,7 @@ let
   '';
   footConfig = pkgs.writeText "foot.ini" ''
     font=${font}:size=11
-    pad=8x6
+    pad=4x2
     dpi-aware=no
 
     [cursor]
@@ -242,15 +247,16 @@ let
   '';
 
   # --- Sway chrome ------------------------------------------------------------
-  # Thin cyan frame on the focused window and a 4px gutter so the wallpaper
-  # outlines every window -- the "deck" look, at a cost of ~12px per axis.
+  # No gaps and no edge borders: on a 640x480 panel every pixel is content. A
+  # 1px line only appears *between* tiled windows, where it marks focus.
   swayTheme = pkgs.writeText "sway-theme.conf" ''
     output * bg ${wallpaper} fill
     font pango:${font} 9
 
-    default_border pixel 2
-    default_floating_border pixel 2
-    gaps inner 4
+    default_border pixel 1
+    default_floating_border pixel 1
+    hide_edge_borders both
+    gaps inner 0
     gaps outer 0
 
     #                       border         bg          text          indicator      child_border
@@ -367,6 +373,16 @@ in
     "--theme 'border=cyan;title=cyan;greet=magenta;text=white;prompt=green;time=yellow;action=cyan;button=magenta;input=white;container=black'"
     "--cmd sway"
   ];
+
+  # Single-line neon prompt for every interactive bash.
+  programs.bash.promptInit = builtins.readFile ./prompt.bash;
+
+  # Boot splash over simpledrm (built into the vendor kernel, up at ~0.4s).
+  boot.plymouth = {
+    enable = true;
+    theme = plymouthTheme.themeName;
+    themePackages = [ plymouthTheme ];
+  };
 
   # Quiet boot: the vendor default (loglevel=7) floods the panel with kernel
   # debug output. Errors still reach the console.

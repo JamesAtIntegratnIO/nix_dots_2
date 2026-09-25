@@ -109,6 +109,7 @@ in
 
     # Utilities
     brightnessctl
+    git # also feeds the branch segment of the prompt
     wl-clipboard # wl-copy / wl-paste (clipboard + primary mirror)
     grim # screenshots
     slurp

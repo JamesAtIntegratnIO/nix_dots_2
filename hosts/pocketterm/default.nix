@@ -40,9 +40,15 @@ in
     "/boot/firmware" = {
       device = lib.mkDefault "/dev/disk/by-label/FIRMWARE";
       fsType = lib.mkDefault "vfat";
+      # Automount, not plain noauto: the bootloader installer writes kernels,
+      # initrds and cmdline.txt here on every switch. With noauto it silently
+      # wrote into the empty mountpoint on the root fs, leaving the real
+      # partition booting a stale generation.
       options = lib.mkDefault [
         "nofail"
         "noauto"
+        "x-systemd.automount"
+        "x-systemd.idle-timeout=1min"
       ];
     };
   };
