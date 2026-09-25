@@ -81,8 +81,15 @@ let
     image=${wallpaper}
     scaling=fill
     font=${font}
-    indicator-radius=56
-    indicator-thickness=5
+    # Always show the ring + clock even before a key is pressed: otherwise the
+    # lock screen is indistinguishable from the desktop wallpaper and reads as
+    # "no login" (nothing shows it's locked or where to type). NOTE: this
+    # swaylock has no bare "indicator" option -- passing it aborts swaylock with
+    # a parse error and the screen goes solid red, so use indicator-idle-visible.
+    indicator-idle-visible
+    clock
+    indicator-radius=64
+    indicator-thickness=6
     show-failed-attempts
     ignore-empty-password
     inside-color=${p.base}cc
