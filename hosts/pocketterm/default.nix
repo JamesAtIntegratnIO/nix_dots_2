@@ -22,6 +22,7 @@ in
     ../../modules/nixos/profiles/pentest.nix
     ../../modules/nixos/profiles/security-keys.nix
     ../../modules/nixos/profiles/power.nix
+    ../../modules/nixos/profiles/emulation.nix
   ];
 
   networking.hostName = "pocketterm";
