@@ -69,7 +69,7 @@ let
         "${i.power}  Power off" | menu power 4) || exit 0
 
       case "$choice" in
-        *Lock) swaylock -f ;;
+        *Lock) swaylock -f -C /etc/swaylock/config ;;
         *"Log out") confirm "Log out" && swaymsg exit ;;
         *Reboot) confirm Reboot && systemctl reboot ;;
         *"Power off") confirm "Power off" && systemctl poweroff ;;
@@ -387,7 +387,10 @@ let
   '';
 in
 {
-  imports = [ ./terminal.nix ];
+  imports = [
+    ./terminal.nix
+    ./firefox.nix
+  ];
 
   environment.etc = {
     "sway/config.d/theme.conf".source = swayTheme;
@@ -398,6 +401,8 @@ in
     "xdg/mako/config".source = makoConfig;
     "xdg/gtk-3.0/settings.ini".text = gtkSettings;
     "xdg/gtk-4.0/settings.ini".text = gtkSettings;
+    # swaylock only searches its own install prefix, never /etc, so every
+    # caller passes -C /etc/swaylock/config (powermenu, swayidle).
     "swaylock/config".text = swaylockConfig;
   };
 

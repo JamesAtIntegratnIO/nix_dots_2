@@ -10,6 +10,34 @@
 let
   user = "jdreier";
 
+  # Turn the panel on/off. Powering vc4's HDMI output back on is flaky: a
+  # `power on` sometimes reports success but leaves the output off, so "on"
+  # retries until Sway reports it powered. (Wildcard `output *` looked worse
+  # in testing, so the output is also named explicitly.)
+  panel-power = pkgs.writeShellApplication {
+    name = "panel-power";
+    runtimeInputs = [ pkgs.sway ];
+    text = ''
+      out=HDMI-A-1
+      case "''${1:-}" in
+        off) swaymsg "output $out power off" >/dev/null ;;
+        on)
+          for _ in 1 2 3 4 5 6; do
+            swaymsg "output $out power on" >/dev/null
+            sleep 0.4
+            swaymsg -t get_outputs | grep -q '"power": true' && exit 0
+          done
+          echo "panel-power: $out still off" >&2
+          exit 1
+          ;;
+        *)
+          echo "usage: panel-power on|off" >&2
+          exit 2
+          ;;
+      esac
+    '';
+  };
+
   # Sway config for the 640x480 display: touch mapped to the panel, Waybar/mako
   # started, hardware keys bound. The look (wallpaper, borders, gaps, colors,
   # cursor) comes from ./cyberdeck via /etc/sway/config.d, which also carries
@@ -45,13 +73,12 @@ let
     exec wl-paste --primary --watch wl-copy
     # Idle: blank the panel after 3 min (any key/touch wakes it), lock after
     # 10. Apps holding an idle inhibitor (RetroArch, video) keep it awake.
-    # The output is named explicitly: `output * power on` reports success but
-    # leaves this panel dark, so a wildcard resume would never wake it.
+    # panel-power retries the wake, which vc4 sometimes drops.
     exec ${pkgs.swayidle}/bin/swayidle -w \
-      timeout 180 'swaymsg "output HDMI-A-1 power off"' \
-        resume 'swaymsg "output HDMI-A-1 power on"' \
-      timeout 600 'swaylock -f' \
-      before-sleep 'swaylock -f'
+      timeout 180 'panel-power off' \
+        resume 'panel-power on' \
+      timeout 600 'swaylock -f -C /etc/swaylock/config' \
+      before-sleep 'swaylock -f -C /etc/swaylock/config'
     # Games and videos in fullscreen never blank, even without an inhibitor.
     for_window [all] inhibit_idle fullscreen
 
@@ -125,10 +152,10 @@ in
     waybar # status bar
     mako # notifications
     libnotify # notify-send
+    panel-power
     swaybg # wallpaper
 
     # GUI apps that make sense on a 640x480 handheld
-    firefox # browser (Pineapple web UI etc.)
     pcmanfm # file manager
     imv # image viewer
     mousepad # lightweight text editor
