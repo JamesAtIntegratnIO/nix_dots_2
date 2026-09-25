@@ -22,6 +22,7 @@ in
     ../../modules/nixos/profiles/cyberdeck
     ../../modules/nixos/profiles/screen-dim
     ../../modules/nixos/profiles/workspaces
+    ../../modules/nixos/profiles/quickmenus
     ../../modules/nixos/profiles/pentest.nix
     ../../modules/nixos/profiles/security-keys.nix
     ../../modules/nixos/profiles/power.nix

@@ -42,6 +42,7 @@ let
     temp = icon "uf2c9";
     power = icon "uf011";
     game = icon "uf11b";
+    bluetooth = icon "uf293";
     lock = icon "uf023";
     logout = icon "uf08b";
     reboot = icon "uf021";
@@ -146,6 +147,7 @@ let
       modules-center = [ "clock" ];
       modules-right = [
         "network"
+        "bluetooth"
         "pulseaudio"
         "cpu"
         "memory"
@@ -177,6 +179,15 @@ let
         format-ethernet = "${i.ethernet} {ipaddr}";
         format-disconnected = "${i.offline} off";
         tooltip-format = "{ifname}: {ipaddr}";
+        on-click = "netmenu";
+      };
+      bluetooth = {
+        format = i.bluetooth;
+        format-connected = "${i.bluetooth} {num_connections}";
+        format-off = i.bluetooth;
+        format-disabled = i.bluetooth;
+        tooltip = false;
+        on-click = "btmenu";
       };
       pulseaudio = {
         format = "{icon} {volume}";
@@ -186,7 +197,8 @@ let
           i.volLow
           i.volHigh
         ];
-        on-click = "pavucontrol";
+        on-click = "volmenu";
+        on-click-right = "pavucontrol";
       };
       cpu = {
         format = "${i.cpu} {usage}";
@@ -228,7 +240,10 @@ let
     #workspaces button:hover { background: #${p.surface}; box-shadow: none; }
     #mode { color: #${p.magenta}; padding: 0 6px; font-weight: bold; }
     #clock { color: #${p.amber}; font-weight: bold; letter-spacing: 1px; }
-    #network, #pulseaudio, #cpu, #memory, #temperature { padding: 0 6px; }
+    #network, #bluetooth, #pulseaudio, #cpu, #memory, #temperature { padding: 0 6px; }
+    #bluetooth { color: #${p.blue}; }
+    #bluetooth.connected { color: #${p.cyan}; }
+    #bluetooth.off, #bluetooth.disabled { color: #${p.overlay}; }
     #network { color: #${p.cyan}; }
     #network.disconnected { color: #${p.overlay}; }
     #pulseaudio { color: #${p.magenta}; }
