@@ -40,6 +40,7 @@ let
     memory = icon "udb80\\udf5b";
     temp = icon "uf2c9";
     power = icon "uf011";
+    game = icon "uf11b";
     lock = icon "uf023";
     logout = icon "uf08b";
     reboot = icon "uf021";
@@ -132,6 +133,7 @@ let
         "custom/logo"
         "sway/workspaces"
         "sway/mode"
+        "custom/game"
       ];
       modules-center = [ "clock" ];
       modules-right = [
@@ -142,6 +144,11 @@ let
         "temperature"
         "custom/power"
       ];
+      "custom/game" = {
+        format = i.game;
+        tooltip = false;
+        on-click = "retroarch";
+      };
       "custom/power" = {
         format = i.power;
         tooltip = false;
@@ -221,6 +228,7 @@ let
     #cpu { color: #${p.green}; }
     #memory { color: #${p.purple}; }
     #temperature { color: #${p.amber}; }
+    #custom-game { color: #${p.green}; padding: 0 8px; font-size: 13px; }
     #custom-power { color: #${p.red}; padding: 0 10px 0 8px; font-size: 13px; }
     #temperature.critical { color: #${p.void}; background: #${p.red}; }
   '';

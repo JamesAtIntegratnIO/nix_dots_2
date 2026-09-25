@@ -11,6 +11,25 @@
   ...
 }:
 
+let
+  palette = import ./cyberdeck/palette.nix;
+
+  # RGUI "custom" theme in the cyberdeck palette. RGUI is RetroArch's pixel
+  # menu: crisp and legible at 640x480, where Ozone/XMB are built for 1080p.
+  # Colors are 0xAARRGGBB; flat background (dark == light), quiet dark frame.
+  argb = hex: "0xFF${hex}";
+  rguiTheme = pkgs.writeText "cyberdeck.cfg" ''
+    rgui_entry_normal_color = "${argb palette.text}"
+    rgui_entry_hover_color = "${argb palette.green}"
+    rgui_title_color = "${argb palette.cyan}"
+    rgui_bg_dark_color = "${argb palette.base}"
+    rgui_bg_light_color = "${argb palette.base}"
+    rgui_border_dark_color = "${argb palette.surface}"
+    rgui_border_light_color = "${argb palette.mantle}"
+    rgui_shadow_color = "${argb palette.void}"
+    rgui_particle_color = "${argb palette.overlay}"
+  '';
+in
 {
   environment.systemPackages = [
     (pkgs.retroarch-bare.wrapper {
@@ -59,6 +78,15 @@
         # Keep Game Focus off: it blocks every keyboard-mapped RetroPad bind
         # and hotkey, and our "gamepad" IS the keyboard.
         input_auto_game_focus = "0";
+
+        # Fullscreen, RGUI menu in the cyberdeck palette.
+        video_fullscreen = "true";
+        menu_driver = "rgui";
+        rgui_menu_color_theme = "0"; # custom -> rgui_menu_theme_preset
+        rgui_menu_theme_preset = "${rguiTheme}";
+        rgui_show_start_screen = "false";
+        rgui_particle_effect = "0";
+        rgui_inline_thumbnails = "true";
 
         # Library: boxart auto-downloads while browsing; browse from ~/ROMs.
         network_on_demand_thumbnails = "true";

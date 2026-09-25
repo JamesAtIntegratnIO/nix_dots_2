@@ -20,6 +20,7 @@ in
     ../../modules/nixos/profiles/pocketterm-hardware.nix
     ../../modules/nixos/profiles/wayland-kiosk.nix
     ../../modules/nixos/profiles/cyberdeck
+    ../../modules/nixos/profiles/screen-dim
     ../../modules/nixos/profiles/pentest.nix
     ../../modules/nixos/profiles/security-keys.nix
     ../../modules/nixos/profiles/power.nix

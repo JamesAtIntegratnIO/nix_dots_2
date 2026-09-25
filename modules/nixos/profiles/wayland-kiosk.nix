@@ -50,6 +50,8 @@ let
     bindsym $mod+d exec fuzzel
     bindsym $mod+e exec firefox
     bindsym $mod+f exec pcmanfm
+    bindsym $mod+g exec retroarch
+
     # Power menu (lock / log out / reboot / power off, with confirmation).
     # The Pi's power button opens it too; logind is told to ignore that key.
     bindsym $mod+Shift+e exec powermenu
