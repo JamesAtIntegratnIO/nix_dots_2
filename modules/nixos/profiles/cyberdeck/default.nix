@@ -458,8 +458,13 @@ in
   ];
 
   # Console + greeter. The VT palette is what tuigreet's named colors resolve
-  # to, so the greeter picks up the neon accents for free.
+  # to, so the greeter picks up the neon accents for free. A bigger console
+  # font (Terminus 10x20) makes the tiny 640x480 panel legible at the greeter
+  # and any TTY -- the kernel 8x16 default is uncomfortably small here. 20px
+  # still leaves 24 rows x 64 cols.
   console.colors = p.ansi;
+  console.font = "${pkgs.terminus_font}/share/consolefonts/ter-v20n.psf.gz";
+  console.packages = [ pkgs.terminus_font ];
   services.greetd.settings.default_session.command = lib.concatStringsSep " " [
     "${pkgs.tuigreet}/bin/tuigreet"
     "--time"
