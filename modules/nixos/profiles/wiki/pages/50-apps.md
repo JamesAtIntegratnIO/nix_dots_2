@@ -1,41 +1,40 @@
 # Apps
 
-Everything picked to make sense on a 640x480 handheld.
+## GUI apps
 
-## GUI
+| App | Keybind | Command | Handles |
+|-----|---------|---------|---------|
+| Firefox | `Super+e` | `firefox <url>` | Web, the Pager UI |
+| pcmanfm | `Super+f` | `pcmanfm <dir>` | Files (single tap opens) |
+| mousepad | - | `mousepad <file>` | Text / md / json / yaml / toml / sh |
+| imv | - | `imv <image>` | png / jpg / gif / webp / bmp / svg |
+| zathura | - | `zathura <file.pdf>` | PDF |
+| mpv | - | `mpv <file>` | Video / audio |
+| pavucontrol | - | `pavucontrol` | Audio mixer |
 
-| App | Launch | Notes |
-|-----|--------|-------|
-| **Firefox** | `Super+e` | Compact density, dark, no bookmarks bar. Pinch-zoom works. Handles the Pager UI. |
-| **pcmanfm** (files) | `Super+f` | A single tap opens files/folders. |
-| **mousepad** | tap a text file | Lightweight editor; default for text/markdown/json/yaml/toml/shell. |
-| **imv** | tap an image | Image viewer (png/jpg/gif/webp/bmp/svg). |
-| **zathura** | tap a PDF | PDF viewer. |
-| **mpv** | tap a video/audio | Media player. |
-| **pavucontrol** | run it | Full audio mixer when the volume menu isn't enough. |
-
-Tapping a file opens it in the app above (xdg defaults). Web links open in
+Tapping a file opens it in the app above (xdg defaults); web links open in
 Firefox.
 
 ## Terminal (foot)
 
-`Super+Return`. Slightly translucent, so the wallpaper glows through. Tips:
-
-- **Highlight to copy**: select text and it copies to the clipboard too; `Ctrl+V`
-  pastes anywhere.
-- **Open a URL**: `Ctrl+click` it (or `Ctrl+Shift+u`, then the letter tag) to
-  open it in Firefox.
-- Colors come from the shared 16-slot palette.
+`Super+Return`. Highlight text to copy it (mirrored to clipboard), `Ctrl+V`
+pastes. `Ctrl+click` a URL (or `Ctrl+Shift+u` then the letter) opens it in
+Firefox.
 
 ## Terminal tools
 
-- **yazi**: fast terminal file manager (lighter than pcmanfm on this screen).
-- **btop**: system monitor (TTY theme; press `1`–`4` to toggle boxes).
-- **bat**: `cat` with syntax highlight. **fd**: friendly `find`. **rg**: ripgrep.
-- **fzf**: `Ctrl+R` history, `Ctrl+T` files, `Alt+C` cd. Fuzzy tab-completion on.
-- **tmux**: mouse on (tap panes, scroll), status bar in the palette.
-- **git**: uses `delta` as the pager (ANSI theme, line numbers).
+    yazi                 # file manager (lighter than pcmanfm here)
+    btop                 # system monitor; 1-4 toggle boxes
+    rg PATTERN           # ripgrep search
+    fd NAME              # find files
+    bat FILE             # cat with syntax highlight
+    delta                # git's pager (auto-used by `git diff`)
 
-## The wiki
+fzf bindings in the shell: `Ctrl+R` history, `Ctrl+T` files, `Alt+C` cd.
+tmux: mouse on (tap panes, scroll).
 
-You're reading it. `wiki` browses, `wiki <query>` searches, `wiki ls` lists.
+## This wiki
+
+    wiki                 # browse
+    wiki <query>         # search
+    wiki ls              # list topics

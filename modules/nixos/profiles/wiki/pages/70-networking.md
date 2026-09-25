@@ -1,41 +1,49 @@
 # Networking
 
-NetworkManager runs the show. The deck is normally **dual-homed**: on the real
-Wi-Fi for internet and on the Pager's network at the same time.
+Dual-homed by default: real Wi-Fi for internet + the Pager's network at once.
 
-## Interfaces
+| Iface | What | Normal state |
+|-------|------|--------------|
+| `wld0` | Built-in Wi-Fi | Infra Wi-Fi (e.g. `InfraAndChill`); internet |
+| `wlu1` | USB Wi-Fi dongle | Pager `PagerAndChill` (management only) |
+| `tailscale0` | Tailscale | Mesh VPN |
+| `end0` | Ethernet (RJ45) | Down unless a cable is in |
 
-| Iface | What | Typical state |
-|-------|------|---------------|
-| `wld0` | Built-in Wi-Fi | Joined to your infra Wi-Fi (e.g. `InfraAndChill`), the internet uplink |
-| `wlu1` | USB Wi-Fi dongle | Joined to the Pager's `PagerAndChill` AP (management only) |
-| `tailscale0` | Tailscale | Remote access / mesh VPN |
-| `end0` | Built-in Ethernet (RJ45) | Down unless a cable is plugged |
+A USB-C tether to the Pager shows up as a `usb0`/`enx…` RTL8153 gadget on the
+same 172.16.52.0/24.
 
-A USB-C tether to the Pager shows up instead as a `usb0`/`enx…` RTL8153
-ethernet gadget, on the same 172.16.52.0/24.
-
-## Joining Wi-Fi
-
-- By hand: `Super+w` (netmenu), then pick a network.
-- CLI: `nmcli device wifi list`, `nmcli device wifi connect "<SSID>"`.
-
-## Why the Pager can't hijack your traffic
-
-The `PagerAndChill` profile is set **management-only**:
-
-- `never-default`: it never becomes the default route, so internet stays on
-  `wld0`.
-- `ignore-auto-dns`: its DNS server (172.16.52.1) gets dropped, so name lookups
-  don't flow through the auditing box.
-
-You can always reach `172.16.52.0/24` (the Pager), but your browsing and DNS
-never route through it. Check with `ip route`: there should be exactly one
-`default` line, via `wld0`.
-
-## Handy checks
+## Inspect
 
     ip -br addr                 # addresses per interface
-    ip route                    # one default via wld0 = correct
-    nmcli device                # connection state per device
-    tailscale status            # mesh peers
+    ip route                    # exactly one `default`, via wld0
+    ip route get 1.1.1.1        # confirm internet path = wld0
+    nmcli device                # per-device state
+    nmcli -g IP4.DNS device show wld0
+
+## Wi-Fi
+
+    nmcli device wifi list
+    nmcli --ask device wifi connect "SSID"
+    nmcli connection show --active
+    nmcli connection delete "SSID"      # forget
+
+## Tailscale
+
+    tailscale status
+    tailscale ip -4
+    sudo tailscale up                   # (re)authenticate
+
+## Pager stays management-only
+
+The `PagerAndChill` profile is set `never-default` + `ignore-auto-dns`, so the
+Pager can't become your route or DNS. Verify:
+
+    ip route | grep -c '^default'       # want: 1  (via wld0)
+    nmcli -g ipv4.never-default connection show PagerAndChill   # want: yes
+
+If a second `default` (via 172.16.52.1) appears, re-apply:
+
+    sudo nmcli connection modify PagerAndChill \
+      ipv4.never-default yes ipv4.ignore-auto-dns yes \
+      ipv6.never-default yes ipv6.ignore-auto-dns yes
+    sudo nmcli connection up PagerAndChill

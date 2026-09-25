@@ -1,55 +1,54 @@
 # WiFi Pineapple Pager
 
-A Hak5 wireless-auditing box that pairs with this deck. **Authorized use only:**
-assess only networks and devices you own or have written permission to test.
+Hak5 wireless-auditing box. **Authorized use only:** assess only networks and
+devices you own or have written permission to test.
 
-## One command
+## `pager` command
 
-    pager           bring the link up, open the dashboard in Firefox, and SSH in
-    pager web       open the Virtual Pager dashboard
-    pager ssh       drop into a root shell
-    pager status    show link / route / reachability
+    pager           connect, open the dashboard in Firefox, and SSH in
+    pager web       open the Virtual Pager dashboard only
+    pager ssh       open a root shell only
+    pager status    link / route / reachability
 
-The Pager lives at **172.16.52.1**; the Virtual Pager web UI is at
-**http://172.16.52.1:1471** (root password = the one you set on the device).
+Address `172.16.52.1`, web UI `http://172.16.52.1:1471`, SSH `root@172.16.52.1`
+(root password = the one set on the device).
 
-## Two ways it connects
+## Manual connect / inspect
 
-- **Wi-Fi management AP**: the Pager's `PagerAndChill` network (WPA2), joined
-  via the USB Wi-Fi dongle (`wlu1`) so the built-in Wi-Fi keeps your internet.
-  It's management-only (see *Networking*). This is the usual path.
-- **USB-C tether**: plug into a **USB-A** port on the Pi with a data cable. The
-  Pager appears as an RTL8153 USB-ethernet gadget and hands out DHCP on the same
-  172.16.52.0/24. This needs the raised USB current budget (already set), or the
-  port over-currents and the Pager never enumerates.
+    nmcli connection up PagerAndChill           # bring the mgmt AP up
+    ping -c2 172.16.52.1                         # reachable?
+    ssh root@172.16.52.1                         # root shell (OpenWrt-ish)
+    ssh root@172.16.52.1 'WIFI_MGMT_AP'          # example on-device helper
+    curl -s http://172.16.52.1:1471/ | head      # confirm the UI is up
 
-Either way, NetworkManager brings it up and `pager` handles the rest.
+## Two connection paths
 
-## Driving it (no host CLI exists)
+- **Wi-Fi mgmt AP**: `PagerAndChill` (WPA2) over the USB dongle (`wlu1`), so
+  the built-in Wi-Fi keeps internet. Management-only (see *networking*). Usual path.
+- **USB-C tether**: data cable into a **USB-A** port on the Pi; the Pager
+  appears as an RTL8153 gadget with DHCP on the same /24. Needs the raised USB
+  current budget (already set) or the port over-currents.
 
-Hak5 ships no host-side CLI. Your options:
+## Driving it (no host CLI ships)
 
-- **Virtual Pager dashboard** (`:1471`): the full tactile UI in the browser,
-  plus a **web terminal** (a root shell with no SSH client) and downloads for
-  captured handshakes / loot.
-- **SSH**: `ssh root@172.16.52.1`. Underneath it's OpenWrt-flavored Linux
-  (busybox plus Pager helpers like `WIFI_MGMT_AP`).
-- **Payloads**: DuckyScript + Bash scripts that run *on the device*, from the
-  official `hak5/wifipineapplepager-payloads` repo. Author them, drop them on
-  the Pager, fire them from its UI. This is the automation surface.
-- A REST API almost certainly backs the `:1471` UI (the Mark VII had one), but
-  Hak5's Pager API docs are "coming soon", so it's undocumented for now.
+- **Dashboard** (`:1471`): full UI, a **web terminal** (root shell, no SSH
+  client), and downloads for handshakes / loot.
+- **SSH**: busybox + Pager helpers.
+- **Payloads**: DuckyScript + Bash on-device, from `hak5/wifipineapplepager-payloads`.
+- A REST API likely backs `:1471` (the Mark VII had one) but Pager API docs are
+  "coming soon".
 
 ## On-device controls
 
-D-pad to move, **A** (green) to confirm, **B** (red) to go back or cancel.
-First-boot setup sets a PIN (locks the on-device UI) and the **root password**
-(used for SSH and the Virtual Pager).
+D-pad moves, **A** (green) confirms, **B** (red) backs out. First boot sets a
+PIN (locks the UI) and the root password (SSH + Virtual Pager).
 
-## If it won't connect
+## Troubleshoot
 
-- `pager status`: is `172.16.52.1` reachable?
-- Is the Pager powered and booted to its dashboard (not stuck rebooting)?
-- On the AP path: is `PagerAndChill` in range? `nmcli device wifi list | grep -i pager`
-- On the USB path: `lsusb` should show an RTL8153, and `dmesg | tail` shows
-  over-current or enumeration errors. Use a **data** cable in a **USB-A** port.
+    pager status                                 # reachable?
+    nmcli device wifi list | grep -i pager       # AP in range?
+    lsusb | grep -i realtek                       # USB path: RTL8153 present?
+    dmesg | tail -20                              # over-current / enumeration
+
+Use a **data** cable in a **USB-A** port. Confirm the Pager is booted to its
+dashboard, not stuck rebooting.

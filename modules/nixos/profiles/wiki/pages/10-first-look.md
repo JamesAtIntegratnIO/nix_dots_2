@@ -1,44 +1,39 @@
 # First look
 
-The physical PocketTerm35: Raspberry Pi 5 (16GB) in a Waveshare handheld
-chassis with a 3.5" 640x480 touchscreen, a built-in QWERTY keyboard, and a
-game pad (D-pad, ABXY, shoulder buttons).
+Raspberry Pi 5 (16GB) in a Waveshare handheld chassis: 3.5" 640x480
+touchscreen, built-in QWERTY keyboard, game pad (D-pad, ABXY, shoulders).
 
-## Powering on / off
+## Power button
 
-- **Power button, short press** opens the on-screen **power menu** (lock, log
-  out, reboot, power off). logind ignores the key, so a tap never suspends or
-  kills the session.
-- **Power button, long hold** forces a hard power-off in firmware (last resort).
-- It boots into Sway, auto-logged in as `jdreier` (greetd). No password prompt
-  on the console; SSH is key-only.
+| Action | Result |
+|--------|--------|
+| Short press | Power menu (lock / log out / reboot / off) |
+| Long hold | Hard power-off in firmware (last resort) |
 
-## Keyboard
+Boots into Sway, auto-logged in as `jdreier`. Console has no password; SSH is
+key-only.
 
-- An on-board **RP2040** MCU drives it, on the Pi's internal USB2 (dwc2 in host
-  mode). It enumerates as a normal USB keyboard.
-- **Fn + brightness keys** set the panel backlight in the RP2040 (hardware PWM).
-  No Sway binding covers this; see *Display & power*.
-- The function row also sends volume / media `XF86Audio*` keys (see *Desktop*).
+## Input map
 
-## Touchscreen
+| Input | Handled by | Notes |
+|-------|-----------|-------|
+| Keyboard | RP2040 MCU (USB2/dwc2 host) | Normal USB keyboard |
+| Fn + brightness | RP2040 hardware PWM | No OS/CLI control (see *display-power*) |
+| Function row | `XF86Audio*` keys | Volume / media |
+| Touch | Goodix GT911 (I2C-1) | Tap = left click; single tap opens files |
+| Edge swipes | lisgd | Gestures only from a screen edge (see *desktop-sway*) |
+| Game buttons | Keyboard keys | X/Y swapped, Start=Pause, Select=SysRq (see *emulation*) |
 
-- **Goodix GT911** on I2C-1. A tap is a left click; drag to select text.
-- **A single tap opens** files and folders (pcmanfm and rofi use single-click,
-  since a finger's double-tap lands too far apart to register).
-- **Edge swipes** are gestures (lisgd); see *Desktop (Sway) → Gestures*.
-  In-app scrolling and dragging stay untouched, since only swipes that start at
-  an edge get captured.
-- Pinch-zoom and kinetic scroll work in Firefox.
+## Verify hardware
 
-## Game buttons
+    i2cdetect -y 1        # 0x5d = GT911 touch (UU), 0x15/0x17 = keyboard MCU
+    wpctl status          # audio graph; HDMI sink should be default
+    swaymsg -t get_outputs | grep -E 'Output|power'
 
-They are **keyboard keys**, not a gamepad device, which shapes how RetroArch
-maps them: X/Y are physically swapped, Start = Pause key, Select = SysRq. See
-*Emulation* for the full mapping.
+## Audio path
 
-## Audio
+Stereo speaker + 3.5mm jack via PipeWire. Audio rides the HDMI signal (same
+cable as the panel); no GPIO DAC, so HDMI is the only sink.
 
-Stereo speaker + 3.5mm jack via PipeWire. The audio rides the **HDMI** signal
-(the same cable that drives the panel); there's no GPIO DAC. HDMI is the only
-real sink, so it's the default.
+    wpctl status                                   # list sinks
+    wpctl set-volume @DEFAULT_AUDIO_SINK@ 50%      # set level

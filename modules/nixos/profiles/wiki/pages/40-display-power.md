@@ -1,42 +1,38 @@
 # Display & power
 
-## Brightness (two layers)
+## Brightness
 
-1. **Hardware backlight**: `Fn + brightness keys` on the keyboard. The RP2040
-   drives the backlight PWM; there's no Sway or OS binding. This layer saves
-   battery, so turn it down first.
-2. **Software dim**: the hardware backlight has a floor that stays too bright at
-   night, so a click-through black overlay scales the image darker on top.
+Two layers. The hardware backlight saves battery; the overlay only darkens the
+image.
 
-   | Keys | Action |
-   |------|--------|
-   | `Super+minus` | Dim one step (×0.75) |
-   | `Super+equal` | Brighten one step |
-   | `Super+0` | Reset to full |
+| Keys | Command | Layer |
+|------|---------|-------|
+| `Fn + brightness` | (none; RP2040 hardware PWM) | Backlight; saves power |
+| `Super+minus` | `screen-dim down` | Overlay ×0.75 |
+| `Super+equal` | `screen-dim up` | Overlay brighter |
+| `Super+0` | `screen-dim reset` | Overlay full |
 
-   This is comfort only. The LEDs stay lit, so it saves no power. (Gamma dimming
-   isn't available either: vc4 exposes no gamma LUT.)
+The overlay is comfort only (LEDs stay lit). vc4 exposes no gamma LUT, so
+gamma-based dimmers don't work here.
 
-## Idle, blank, and lock
+## Panel & lock
 
-swayidle handles this:
+    panel-power off                             # blank the panel
+    panel-power on                              # wake it (retries vc4's flaky wake)
+    swaylock -f -C /etc/swaylock/config         # lock now
+    swaymsg -t get_outputs | grep -A2 HDMI-A-1  # check power/mode state
 
-- **3 min idle**: the panel powers off. Any key or touch wakes it.
-- **10 min idle** (or on sleep): the screen locks (swaylock).
-- **Fullscreen apps** (RetroArch, video) hold an idle inhibitor, so games and
-  movies never blank mid-use.
-
-Panel wake on the Pi 5's vc4 HDMI is occasionally flaky, so the wake step
-retries until the output reports powered. A dropped wake recovers on its own
-within a second or two.
+Idle (swayidle): panel off at 3 min (any key/touch wakes), lock at 10 min.
+Fullscreen apps (RetroArch, video) inhibit idle, so they never blank.
 
 ## Battery
 
-- 5000 mAh cell. **The OS gets no battery telemetry** on this chassis, so
-  there's no percentage in the bar (the hardware doesn't report it).
-- CPU uses the `schedutil` governor (scales 1.5–2.4 GHz with load).
-- Wi-Fi power-save is **on**. It's safe here, since the keyboard and touch are
-  USB/I2C, not Wi-Fi, so input never stalls.
-- Biggest wins, in order: lower the hardware backlight, quit fullscreen
-  emulators when idle, and unplug USB peripherals (a Wi-Fi dongle or the Pager
-  draw real power).
+No battery telemetry on this chassis (the hardware doesn't report a
+percentage). Levers that help:
+
+    # Governor (already schedutil; confirm)
+    cat /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
+
+Biggest wins, in order: lower the hardware backlight (`Fn`), quit fullscreen
+emulators when idle, unplug USB peripherals (a Wi-Fi dongle or the Pager draw
+real power). Wi-Fi power-save is on and safe (input is USB/I2C, not Wi-Fi).

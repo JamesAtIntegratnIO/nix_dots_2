@@ -1,45 +1,50 @@
 # Maintenance
 
-The `nix_dots_2` flake defines this deck (host `pocketterm`), and the aarch64
-Mac Studio builds it. No on-device compiling.
+The `nix_dots_2` flake defines this deck (host `pocketterm`); the aarch64 Mac
+Studio builds it. No on-device compiling.
 
-## Deploy a change
-
-From the repo on the Mac:
+## Deploy (from the repo on the Mac)
 
     nixos-rebuild switch --flake .#pocketterm \
       --target-host jdreier@pocketterm --use-remote-sudo
 
-It builds on the Mac (or its linux-builder), copies the closure over SSH, and
-activates. Firmware and `config.txt` changes (e.g. USB current) need a
-**reboot** to take effect; most everything else goes live on switch.
+Firmware / `config.txt` changes (e.g. USB current) need a reboot; everything
+else goes live on switch.
+
+    nix flake update                             # bump inputs, then redeploy
+    nixos-rebuild build --flake .#pocketterm     # build only, no activate
+
+## Generations & rollback (on the deck)
+
+    nixos-rebuild list-generations
+    sudo nixos-rebuild switch --rollback         # back one generation
+    sudo nix-collect-garbage -d                  # reclaim space
+    sudo nix-collect-garbage --delete-older-than 14d
 
 ## First install / reflash
 
-Flash the SD image built from `.#pocketterm-sdimage`, boot once, then use
-`target-host` rebuilds from then on. After a reflash, set a login password with
-`passwd` (SSH stays key-only regardless).
-
-## Where things live
-
-- Host: `hosts/pocketterm/default.nix`
-- Hardware (Pi 5 / panel / touch / USB current): `modules/nixos/profiles/pocketterm-hardware.nix`
-- Desktop / keybinds: `modules/nixos/profiles/wayland-kiosk.nix`
-- Look & feel: `modules/nixos/profiles/cyberdeck/`
-- Workspaces, quick menus, screen-dim, power, emulation, pentest: their own
-  files under `modules/nixos/profiles/`
-- This wiki: `modules/nixos/profiles/wiki/pages/*.md`
-
-## Editing this wiki
-
-1. Edit or add a `.md` file in `modules/nixos/profiles/wiki/pages/`. Filenames
-   sort by their numeric prefix, and the first `# Heading` becomes the title.
-2. Deploy (command above).
-3. `wiki` picks it up. It reads from the read-only Nix store, so there's no
-   database and nothing running in the background.
+Flash the image from `.#pocketterm-sdimage`, boot once, then use `target-host`
+rebuilds. After a reflash, set a login password with `passwd` (SSH stays
+key-only).
 
 ## Health checks
 
-    systemctl --failed          # anything broken?
-    journalctl -b -p err        # errors this boot
-    ip route                    # one default via wld0 (see Networking)
+    systemctl --failed                           # broken units
+    journalctl -b -p err                         # errors this boot
+    journalctl -u <unit> -e                      # tail one unit
+    ip route                                     # one default via wld0
+
+## Where things live
+
+    hosts/pocketterm/default.nix                         # host
+    modules/nixos/profiles/pocketterm-hardware.nix       # Pi 5 / panel / touch / USB
+    modules/nixos/profiles/wayland-kiosk.nix             # Sway / keybinds
+    modules/nixos/profiles/cyberdeck/                    # look & feel
+    modules/nixos/profiles/{workspaces,quickmenus,screen-dim,power,emulation,pentest}
+    modules/nixos/profiles/wiki/pages/*.md               # this wiki
+
+## Edit this wiki
+
+1. Add/edit a `.md` in `modules/nixos/profiles/wiki/pages/` (numeric prefix
+   orders it; first `# Heading` is the title).
+2. Deploy (above). `wiki` reads from the read-only Nix store, no daemon.

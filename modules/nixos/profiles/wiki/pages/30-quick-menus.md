@@ -1,22 +1,42 @@
 # Quick menus
 
-Touch-friendly rofi menus, all in the cyberdeck theme. A single tap picks a
-row. Pressing the same hotkey again **closes** the menu instead of stacking a
-second one. Each is also on the Waybar widgets.
+rofi menus, single-tap to pick. Same hotkey again closes the menu. Also on the
+Waybar widgets. Each is a command too (`netmenu`, `btmenu`, `volmenu`,
+`powermenu`, `toolmenu`).
 
-| Keys | Menu | What it does |
-|------|------|--------------|
-| `Super+w` | **netmenu** | Wi-Fi: join a network (masked password prompt for new secured ones), disconnect, rescan, toggle the radio, or drop to `nmtui` |
-| `Super+b` | **btmenu** | Bluetooth (rofi-bluetooth style): power / scan / pairable / discoverable, plus per-device connect / pair / trust / remove |
-| `Super+v` | **volmenu** | Volume: mute, level presets, pick the output device, mic mute |
-| `Super+Shift+e` | **powermenu** | Lock / log out / reboot / power off, with a confirm step |
-| `Super+t` | **toolmenu** | Field tools from the pentest toolkit (opens them in a terminal) |
+| Keys | Menu |
+|------|------|
+| `Super+w` | Wi-Fi: join / disconnect / rescan / radio toggle / nmtui |
+| `Super+b` | Bluetooth: power / scan / pair / connect / trust / remove |
+| `Super+v` | Volume: mute / levels / output device / mic mute |
+| `Super+Shift+e` | Power: lock / log out / reboot / off |
+| `Super+t` | Field tools (opens in a terminal) |
 
-Notes:
+## Wi-Fi from the shell
 
-- **netmenu** is the fastest way to join a new Wi-Fi network by hand; for the
-  Pager's `PagerAndChill` network the `pager` command already handles it.
-- **powermenu** is the same menu the power button and the bottom-edge swipe
-  open.
-- Everything here is a normal command too (e.g. `netmenu`, `btmenu`) if you'd
-  rather bind or script it.
+    nmcli device wifi list                          # scan
+    nmcli --ask device wifi connect "SSID"          # join (prompts password)
+    nmcli device wifi connect "SSID" password "PW"  # join non-interactively
+    nmcli connection show --active                  # what's connected
+    nmcli device disconnect wld0                    # drop the built-in radio
+    nmcli connection delete "SSID"                  # forget a network
+    nmcli radio wifi off                            # kill / restore the radio
+    nmtui                                           # full-screen TUI
+
+## Bluetooth from the shell
+
+    bluetoothctl power on
+    bluetoothctl scan on            # let it run a few seconds, Ctrl-C to stop
+    bluetoothctl devices            # list seen devices + MACs
+    bluetoothctl pair    AA:BB:CC:DD:EE:FF
+    bluetoothctl trust   AA:BB:CC:DD:EE:FF
+    bluetoothctl connect AA:BB:CC:DD:EE:FF
+    bluetoothctl remove  AA:BB:CC:DD:EE:FF
+
+## Volume from the shell
+
+    wpctl status                                    # list sinks / sources
+    wpctl set-volume @DEFAULT_AUDIO_SINK@ 40%
+    wpctl set-mute   @DEFAULT_AUDIO_SINK@ toggle
+    wpctl set-default <id>                          # switch output (id from status)
+    pavucontrol                                     # full mixer GUI

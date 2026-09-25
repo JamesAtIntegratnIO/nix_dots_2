@@ -1,36 +1,33 @@
 # Emulation
 
-RetroArch (libretro) scales to 640x480. Launch with `Super+g`.
+RetroArch (libretro), scaled to 640x480.
 
-## The catch: the buttons are keyboard keys
+    retroarch            # or Super+g; browse ~/ROMs from the menu
+    ls ~/ROMs            # ROM library (browser starts here)
 
-The chassis game controls are **not a gamepad**. They send keyboard keycodes,
-and two are quirky. The config already maps them right; this page explains why:
+## Button map
 
-- **X and Y are physically swapped** (the key under "X" sends Y's code, and
-  vice-versa). The config remaps them so the labels match in games.
-- **Start** is the `Pause` key.
-- **Select** is the `SysRq` key (not Print Screen).
+The game controls send **keyboard keys**, not gamepad events. The config
+already maps them; this is the mapping:
 
-## Menu & hotkeys
+| Physical | Sends | RetroPad |
+|----------|-------|----------|
+| A / B | a / b | A / B |
+| X / Y | swapped codes | remapped so labels match |
+| D-pad | arrows | up/down/left/right |
+| L / R | l / r | L / R |
+| Start | `Pause` key | Start |
+| Select | `SysRq` key | Select |
 
-- **Open the in-game menu:** hold **Select**, then tap **Start**. (Select is the
-  hotkey-enable key; Start is the menu toggle.)
-- Game Focus stays **off**. Turning it on would block the keyboard-mapped pad,
-  since the "gamepad" is the keyboard.
+## In-game menu
 
-## Library
+Hold **Select**, then tap **Start**. (Select = hotkey-enable, Start = menu
+toggle.) Game Focus stays off, since the keyboard *is* the pad.
 
-- ROMs live in **`~/ROMs`** (`/home/jdreier/ROMs`), the browser's start
-  directory.
-- Box art auto-downloads while you browse (right thumbnail = boxart, left =
-  title screen), so art needs the network but playing doesn't.
-- The menu is **RGUI**, the crisp pixel menu, in the cyberdeck palette. Ozone
-  and XMB are built for 1080p and look rough here.
+## Library notes
 
-## Cores installed
-
-NES (fceumm, nestopia), SNES (snes9x), Game Boy / Color (gambatte), GBA (mGBA),
-SMS / Game Gear / Genesis (genesis-plus-gx), Genesis / 32X / SegaCD (picodrive),
-PlayStation (pcsx-rearmed), N64 (mupen64plus), Atari 2600 (stella), arcade
-(mame2003-plus).
+- Menu is RGUI (crisp pixel menu) in the cyberdeck palette.
+- Box art auto-downloads while browsing (needs network; playing doesn't).
+- Cores: NES (fceumm, nestopia), SNES (snes9x), GB/GBC (gambatte), GBA (mGBA),
+  SMS/GG/Genesis (genesis-plus-gx), Genesis/32X/SegaCD (picodrive), PS1
+  (pcsx-rearmed), N64 (mupen64plus), Atari 2600 (stella), arcade (mame2003-plus).

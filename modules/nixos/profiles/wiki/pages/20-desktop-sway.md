@@ -1,71 +1,62 @@
 # Desktop (Sway)
 
-A lean Wayland session: Sway + Waybar + rofi, themed by the cyberdeck palette.
-No gaps or edge borders, since every pixel on the 640x480 panel is content.
+Sway + Waybar + rofi. No gaps or borders (every pixel counts on 640x480).
 **Super** (Mod4) is the mod key.
 
-## Launching things
+## Key bindings
 
 | Keys | Action |
 |------|--------|
 | `Super+Return` | Terminal (foot) |
-| `Super+d` | App launcher (rofi); also swipe down from the top edge |
+| `Super+d` | App launcher (or swipe down from top edge) |
 | `Super+e` | Firefox |
-| `Super+f` | File manager (pcmanfm) |
+| `Super+f` | Files (pcmanfm) |
 | `Super+g` | RetroArch |
-| `Super+q` | Close focused window |
-
-## Power / session
-
-| Keys | Action |
-|------|--------|
-| `Super+Shift+e` | Power menu (lock / log out / reboot / off) |
-| `Super+Escape` | Power menu |
-| Power button | Power menu (short press) |
-
-## Screenshots
-
-| Keys | Action |
-|------|--------|
+| `Super+q` | Close window |
+| `Super+Shift+e` / `Super+Escape` | Power menu |
 | `Super+s` | Whole screen to clipboard |
-| `Super+Shift+s` | Region (drag to select) to clipboard |
+| `Super+Shift+s` | Region to clipboard |
+| `Super+1..4` | Go to workspace 1–4 |
+| `Super+Shift+1..4` | Move window to workspace 1–4 |
+| `Super+Left` / `Super+Right` | Prev / next workspace |
+| `Super+w` / `Super+b` / `Super+v` / `Super+t` | Wi-Fi / Bluetooth / volume / tools menu |
+| `Super+minus` / `Super+equal` / `Super+0` | Dim / brighten / reset overlay |
 
-Paste anywhere with `Ctrl+V`. The primary selection mirrors into the clipboard
-too, so highlighting text is enough to paste it.
-
-## Volume (function-row keys)
-
-- `XF86AudioRaiseVolume` / `LowerVolume` step ±5% via `wpctl`.
-- `XF86AudioMute` toggles mute.
-- Fine control: `Super+v` volume menu, or `pavucontrol`.
-
-## Workspaces
-
-This deck runs **one app per workspace**. Tiling two windows on a 640x480 panel
-is useless, so a new app opens on its own fresh workspace right after the one
-you launched it from (handled by `wsd`).
-
-| Keys | Action |
-|------|--------|
-| `Super+1..4` | Jump to workspace 1–4 |
-| `Super+Shift+1..4` | Move current window to workspace 1–4 |
-| `Super+Right` | Next workspace; past the last one, opens a new empty one |
-| `Super+Left` | Previous workspace; from workspace 1, wraps to the last |
-
-Empty workspaces vanish when you leave them, so they never pile up.
-
-## Gestures (edge swipes)
-
-A swipe has to **start at a screen edge**, so in-app touch is never hijacked:
+## Gestures (swipe from a screen edge)
 
 | Swipe | Action |
 |-------|--------|
-| Left edge → right | Previous workspace (`ws-nav prev`) |
-| Right edge → left | Next workspace (`ws-nav next`) |
+| Left edge → right | Previous workspace |
+| Right edge → left | Next workspace |
 | Top edge → down | App launcher |
 | Bottom edge → up | Power menu |
 
-## Bar
+## Same actions from the shell
 
-Waybar sits at the top. Its Wi-Fi / Bluetooth / volume / power widgets open the
-same quick menus described in *Quick menus*.
+    # Workspaces
+    swaymsg workspace number 3
+    swaymsg move container to workspace number 2
+    ws-nav next            # next ws; past the last, opens a new empty one
+    ws-nav prev            # prev ws; from ws 1, wraps to the last
+    swaymsg -t get_workspaces
+
+    # Screenshots
+    grim ~/shot.png                     # whole screen to file
+    grim -g "$(slurp)" ~/region.png     # region to file
+    grim - | wl-copy                    # whole screen to clipboard
+
+    # Volume (function-row keys do these too)
+    wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+
+    wpctl set-mute   @DEFAULT_AUDIO_SINK@ toggle
+
+    # Windows / layout
+    swaymsg -t get_tree | less          # inspect the tree
+    swaymsg kill                        # close focused window
+
+Clipboard: the primary selection mirrors into the clipboard, so highlighting
+text is enough to `Ctrl+V` it anywhere.
+
+## Layout model
+
+One app per workspace (`wsd`): a new app opens on its own fresh workspace after
+the current one. Empty workspaces disappear when you leave them.
