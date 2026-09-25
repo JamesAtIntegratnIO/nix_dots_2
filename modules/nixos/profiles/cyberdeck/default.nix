@@ -1,5 +1,5 @@
 # Cyberdeck look for the PocketTerm35: one palette (./palette.nix) drives the
-# wallpaper, Sway chrome, Waybar, foot, fuzzel, mako, GTK apps, the cursor, the
+# wallpaper, Sway chrome, Waybar, foot, rofi, mako, GTK apps, the cursor, the
 # Linux console and the tuigreet greeter. Session wiring (keybinds, autostart,
 # greetd autologin) lives in ../wayland-kiosk.nix; this module is only the look.
 {
@@ -46,37 +46,6 @@ let
     lock = icon "uf023";
     logout = icon "uf08b";
     reboot = icon "uf021";
-  };
-
-  # Power menu (bar button, Super+Shift+E, Super+Escape, the Pi's power
-  # button). Everything but Lock asks again, so a stray tap can't power off.
-  powermenu = pkgs.writeShellApplication {
-    name = "powermenu";
-    runtimeInputs = with pkgs; [
-      fuzzel
-      procps
-      swaylock
-      sway
-      systemd
-    ];
-    text = ''
-      menu() { fuzzel --dmenu --prompt "$1 ❯ " --lines "$2" --width 18; }
-      confirm() { [ "$(printf 'No\nYes\n' | menu "$1?" 2)" = Yes ]; }
-
-      pkill -x fuzzel && exit 0 # second press closes an open menu
-      choice=$(printf '%s\n' \
-        "${i.lock}  Lock" \
-        "${i.logout}  Log out" \
-        "${i.reboot}  Reboot" \
-        "${i.power}  Power off" | menu power 4) || exit 0
-
-      case "$choice" in
-        *Lock) swaylock -f -C /etc/swaylock/config ;;
-        *"Log out") confirm "Log out" && swaymsg exit ;;
-        *Reboot) confirm Reboot && systemctl reboot ;;
-        *"Power off") confirm "Power off" && systemctl poweroff ;;
-      esac
-    '';
   };
 
   swaylockConfig = ''
@@ -290,38 +259,6 @@ let
     ${footColors}
   '';
 
-  # --- fuzzel -----------------------------------------------------------------
-  fuzzelConfig = pkgs.writeText "fuzzel.ini" ''
-    [main]
-    font=${font}:size=11
-    prompt="❯ "
-    icon-theme=${iconTheme.name}
-    terminal=foot -e
-    layer=overlay
-    width=34
-    lines=9
-    horizontal-pad=14
-    vertical-pad=10
-    inner-pad=6
-
-    [colors]
-    background=${p.base}f2
-    text=${p.text}ff
-    prompt=${p.green}ff
-    placeholder=${p.overlay}ff
-    input=${p.bright}ff
-    match=${p.cyan}ff
-    selection=${p.cyan}33
-    selection-text=${p.bright}ff
-    selection-match=${p.green}ff
-    counter=${p.overlay}ff
-    border=${p.cyan}ff
-
-    [border]
-    width=2
-    radius=0
-  '';
-
   # --- mako -------------------------------------------------------------------
   makoConfig = pkgs.writeText "mako-config" ''
     font=${font} 10
@@ -413,7 +350,7 @@ in
   imports = [
     ./terminal.nix
     ./firefox.nix
-    ./toolmenu.nix
+    ./rofi.nix
   ];
 
   environment.etc = {
@@ -421,7 +358,6 @@ in
     "xdg/waybar/config".source = waybarConfig;
     "xdg/waybar/style.css".source = waybarStyle;
     "xdg/foot/foot.ini".source = footConfig;
-    "xdg/fuzzel/fuzzel.ini".source = fuzzelConfig;
     "xdg/mako/config".source = makoConfig;
     "xdg/gtk-3.0/settings.ini".text = gtkSettings;
     "xdg/gtk-4.0/settings.ini".text = gtkSettings;
@@ -462,7 +398,6 @@ in
   };
 
   environment.systemPackages = [
-    powermenu
     cursor.package
     gtkTheme.package
     iconTheme.package

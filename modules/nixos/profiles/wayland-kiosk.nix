@@ -1,6 +1,6 @@
 # Minimal Wayland desktop sized for the PocketTerm35's 640x480 panel: greetd
 # autologins jdreier into Sway with a Waybar status bar, foot terminal, and
-# fuzzel launcher, themed by ./cyberdeck. Deliberately lean -- no full DE.
+# rofi launcher, themed by ./cyberdeck. Deliberately lean -- no full DE.
 {
   lib,
   pkgs,
@@ -20,7 +20,7 @@ let
       -w 640 -h 480 -t 100 \
       -g '1,LR,L,*,R,ws-nav prev' \
       -g '1,RL,R,*,R,ws-nav next' \
-      -g '1,UD,T,*,R,fuzzel' \
+      -g '1,UD,T,*,R,launcher' \
       -g '1,DU,B,*,R,powermenu' \
       "$@"
   '';
@@ -92,11 +92,10 @@ let
 
     bindsym $mod+Return exec $term
     bindsym $mod+q kill
-    bindsym $mod+d exec fuzzel
+    bindsym $mod+d exec launcher
     bindsym $mod+e exec firefox
     bindsym $mod+f exec pcmanfm
     bindsym $mod+g exec retroarch
-    bindsym $mod+t exec toolmenu
 
     # Power menu (lock / log out / reboot / power off, with confirmation).
     # The Pi's power button opens it too; logind is told to ignore that key.
@@ -157,7 +156,6 @@ in
   environment.systemPackages = with pkgs; [
     # Session
     foot # terminal (touchscreen selection)
-    fuzzel # app launcher
     waybar # status bar
     mako # notifications
     libnotify # notify-send
