@@ -1,15 +1,15 @@
 # Desktop (Sway)
 
 A lean Wayland session: Sway + Waybar + rofi, themed by the cyberdeck palette.
-No gaps or edge borders — every pixel on the 640x480 panel is content. **Super**
-(Mod4) is the mod key.
+No gaps or edge borders, since every pixel on the 640x480 panel is content.
+**Super** (Mod4) is the mod key.
 
 ## Launching things
 
 | Keys | Action |
 |------|--------|
 | `Super+Return` | Terminal (foot) |
-| `Super+d` | App launcher (rofi) — also swipe down from the top edge |
+| `Super+d` | App launcher (rofi); also swipe down from the top edge |
 | `Super+e` | Firefox |
 | `Super+f` | File manager (pcmanfm) |
 | `Super+g` | RetroArch |
@@ -27,21 +27,21 @@ No gaps or edge borders — every pixel on the 640x480 panel is content. **Super
 
 | Keys | Action |
 |------|--------|
-| `Super+s` | Whole screen → clipboard |
-| `Super+Shift+s` | Region (drag to select) → clipboard |
+| `Super+s` | Whole screen to clipboard |
+| `Super+Shift+s` | Region (drag to select) to clipboard |
 
-Paste anywhere with `Ctrl+V`. (The primary selection is mirrored into the
-clipboard too, so highlighting text is enough to paste it.)
+Paste anywhere with `Ctrl+V`. The primary selection mirrors into the clipboard
+too, so highlighting text is enough to paste it.
 
 ## Volume (function-row keys)
 
-- `XF86AudioRaiseVolume` / `LowerVolume` → ±5% via `wpctl`
-- `XF86AudioMute` → toggle mute
+- `XF86AudioRaiseVolume` / `LowerVolume` step ±5% via `wpctl`.
+- `XF86AudioMute` toggles mute.
 - Fine control: `Super+v` volume menu, or `pavucontrol`.
 
 ## Workspaces
 
-This deck is **one app per workspace** — tiling two windows on a 640x480 panel
+This deck runs **one app per workspace**. Tiling two windows on a 640x480 panel
 is useless, so a new app opens on its own fresh workspace right after the one
 you launched it from (handled by `wsd`).
 
@@ -49,14 +49,14 @@ you launched it from (handled by `wsd`).
 |------|--------|
 | `Super+1..4` | Jump to workspace 1–4 |
 | `Super+Shift+1..4` | Move current window to workspace 1–4 |
-| `Super+Right` | Next workspace — past the last one **creates a new empty one** |
-| `Super+Left` | Previous workspace — from workspace 1 **wraps to the last** |
+| `Super+Right` | Next workspace; past the last one, opens a new empty one |
+| `Super+Left` | Previous workspace; from workspace 1, wraps to the last |
 
 Empty workspaces vanish when you leave them, so they never pile up.
 
 ## Gestures (edge swipes)
 
-Swipes must **start at a screen edge** (in-app touch is never hijacked):
+A swipe has to **start at a screen edge**, so in-app touch is never hijacked:
 
 | Swipe | Action |
 |-------|--------|
