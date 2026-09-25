@@ -3,6 +3,7 @@
 # Linux console and the tuigreet greeter. Session wiring (keybinds, autostart,
 # greetd autologin) lives in ../wayland-kiosk.nix; this module is only the look.
 {
+  config,
   lib,
   pkgs,
   ...
@@ -478,12 +479,19 @@ in
   # Single-line neon prompt for every interactive bash.
   programs.bash.promptInit = builtins.readFile ./prompt.bash;
 
-  # Boot splash over simpledrm (built into the vendor kernel, up at ~0.4s).
+  # Boot splash on vc4 (loaded in the initrd below, up at ~1.5s).
   boot.plymouth = {
     enable = true;
     theme = plymouthTheme.themeName;
     themePackages = [ plymouthTheme ];
   };
+  # Plymouth quits ~3s before Sway takes the panel, which flashed the text
+  # console in between. --retain-splash leaves the last splash frame on
+  # screen until Sway draws over it.
+  systemd.services.plymouth-quit.serviceConfig.ExecStart = [
+    ""
+    "-${config.boot.plymouth.package}/bin/plymouth quit --retain-splash"
+  ];
 
   # Quiet boot: the vendor default (loglevel=7) floods the panel with kernel
   # debug output. Errors still reach the console.
@@ -492,5 +500,23 @@ in
   boot.kernelParams = [
     "quiet"
     "udev.log_level=3"
+    # No [ OK ] status lines on the panel; the splash covers boot instead.
+    "systemd.show_status=false"
+    "rd.systemd.show_status=false"
+    "vt.global_cursor_default=0"
+    # The vendor cmdline has console=serial0; with any serial console present
+    # Plymouth forces its text-only "details" splash and never draws the theme.
+    # This keeps the serial console but lets the graphical splash run.
+    "plymouth.ignore-serial-consoles"
+  ];
+
+  # The panel shows nothing from the firmware framebuffer (simpledrm) once the
+  # kernel is up, and vc4 only came up from the root fs at ~6.5s -- so Plymouth
+  # ran on a dark screen and the first thing visible was console text. vc4's
+  # HDMI binding also waits on the HDMI DDC I2C controllers (brcmstb-i2c), so
+  # both go in the initrd to give Plymouth the real KMS device from ~2s.
+  boot.initrd.kernelModules = [
+    "i2c-brcmstb"
+    "vc4"
   ];
 }
