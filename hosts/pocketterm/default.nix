@@ -76,7 +76,7 @@ in
     extraGroups = [
       "wheel"
       "networkmanager"
-      "video" # backlight / brightnessctl
+      "video" # GPU / DRM access
       "audio"
       "input"
       "dialout" # serial consoles (/dev/ttyUSB*, /dev/ttyACM*)

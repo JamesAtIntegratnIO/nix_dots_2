@@ -33,6 +33,17 @@ let
     # Mirror the primary selection into the clipboard, so tap-drag to highlight
     # (in foot or anywhere) is immediately pasteable with Ctrl+V everywhere.
     exec wl-paste --primary --watch wl-copy
+    # Idle: blank the panel after 3 min (any key/touch wakes it), lock after
+    # 10. Apps holding an idle inhibitor (RetroArch, video) keep it awake.
+    # The output is named explicitly: `output * power on` reports success but
+    # leaves this panel dark, so a wildcard resume would never wake it.
+    exec ${pkgs.swayidle}/bin/swayidle -w \
+      timeout 180 'swaymsg "output HDMI-A-1 power off"' \
+        resume 'swaymsg "output HDMI-A-1 power on"' \
+      timeout 600 'swaylock -f' \
+      before-sleep 'swaylock -f'
+    # Games and videos in fullscreen never blank, even without an inhibitor.
+    for_window [all] inhibit_idle fullscreen
 
     bindsym $mod+Return exec $term
     bindsym $mod+q kill
@@ -49,9 +60,8 @@ let
     bindsym $mod+s exec grim - | wl-copy
     bindsym $mod+Shift+s exec grim -g "$(slurp)" - | wl-copy
 
-    # Function-row hardware keys.
-    bindsym XF86MonBrightnessUp   exec brightnessctl set +10%
-    bindsym XF86MonBrightnessDown exec brightnessctl set 10%-
+    # Function-row hardware keys. (Brightness has no binding: the keyboard's
+    # RP2040 drives the backlight PWM itself on Fn+brightness.)
     bindsym XF86AudioRaiseVolume  exec wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+
     bindsym XF86AudioLowerVolume  exec wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
     bindsym XF86AudioMute         exec wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
@@ -116,7 +126,6 @@ in
     yazi
 
     # Utilities
-    brightnessctl
     git # also feeds the branch segment of the prompt
     wl-clipboard # wl-copy / wl-paste (clipboard + primary mirror)
     grim # screenshots
