@@ -1,6 +1,6 @@
 # Emulation for the PocketTerm35's built-in game controls (D-pad, ABXY,
 # shoulders). Those buttons enumerate as keyboard keys (there is no gamepad
-# device), with X/Y sending swapped keycodes and Start/Select = SysRq/Pause.
+# device), with X/Y sending swapped keycodes and Start/Select = Pause/SysRq.
 #
 # RetroArch is a libretro frontend that scales cleanly to the 640x480 panel.
 # Input + library settings are baked into the wrapper's appendconfig (loaded
@@ -29,12 +29,16 @@
       ];
 
       settings = {
-        # REQUIRED under Wayland: the default "x" (X11) input driver reads no
-        # input on the Pi 5's Wayland session -- this cost a long debug once.
+        # Under Sway the Wayland GL context ignores this and always uses its own
+        # "wayland" input driver (raw evdev keycodes from the compositor). udev
+        # only matters if RetroArch is ever run on KMS outside the compositor;
+        # the default "x" reads nothing either way.
         input_driver = "udev";
 
         # Built-in controls are keyboard keys. Physical X/Y send swapped codes;
-        # Start = SysRq (print_screen), Select = Pause. Verified via evtest.
+        # Start = KEY_PAUSE ("pause"), Select = KEY_SYSRQ ("sysreq" -- NOT
+        # "print_screen", which is KEY_PRINT and never fires). Verified by
+        # logging event0 while pressing each button.
         input_player1_a = "a";
         input_player1_b = "b";
         input_player1_x = "y";
@@ -45,14 +49,15 @@
         input_player1_right = "right";
         input_player1_l = "l";
         input_player1_r = "r";
-        input_player1_start = "print_screen";
-        input_player1_select = "pause";
-        # Hold Select + press Start to open the menu in-game.
-        input_enable_hotkey = "pause";
-        input_menu_toggle = "print_screen";
-        # Game Focus must stay off: it blocks every keyboard-mapped RetroPad
-        # bind (and hotkeys), and our "gamepad" IS the keyboard. With it "1"
-        # (always on) the menu worked but games received no input at all.
+        input_player1_start = "pause";
+        input_player1_select = "sysreq";
+        # Hold Select + press Start to open the menu in-game. (Holding the
+        # hotkey-enable key blocks game input, so Select only reaches the game
+        # as a quick tap.)
+        input_enable_hotkey = "sysreq";
+        input_menu_toggle = "pause";
+        # Keep Game Focus off: it blocks every keyboard-mapped RetroPad bind
+        # and hotkey, and our "gamepad" IS the keyboard.
         input_auto_game_focus = "0";
 
         # Library: boxart auto-downloads while browsing; browse from ~/ROMs.
