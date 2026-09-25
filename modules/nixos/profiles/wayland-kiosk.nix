@@ -59,8 +59,8 @@ let
     # dragging are never hijacked). The panel and touch share 640x480 coords.
     exec ${pkgs.lisgd}/bin/lisgd -d /dev/input/by-path/platform-1f00074000.i2c-event \
       -w 640 -h 480 -t 100 \
-      -g '1,LR,L,*,R,swaymsg workspace prev' \
-      -g '1,RL,R,*,R,swaymsg workspace next' \
+      -g '1,LR,L,*,R,ws-nav prev' \
+      -g '1,RL,R,*,R,ws-nav next' \
       -g '1,UD,T,*,R,fuzzel' \
       -g '1,DU,B,*,R,powermenu'
 
