@@ -189,6 +189,12 @@ in
       "image/bmp"
       "image/svg+xml"
     ]
+    // assoc "firefox.desktop" [
+      # So xdg-open (and thus a ctrl+clicked link in foot, or the `pager`
+      # helper) opens web links in Firefox -- e.g. the Pager UI on :1471.
+      "x-scheme-handler/http"
+      "x-scheme-handler/https"
+    ]
     // assoc "org.pwmt.zathura-pdf-mupdf.desktop" [ "application/pdf" ]
     // assoc "mpv.desktop" [
       "video/mp4"
