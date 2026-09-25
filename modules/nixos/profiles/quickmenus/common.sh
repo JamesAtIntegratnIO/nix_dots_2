@@ -34,22 +34,33 @@ row() {
 }
 
 # menu PROMPT [MESSAGE] [ACTIVE_ROWS] [URGENT_ROWS]
-# Rows (Pango markup) on stdin. Prints the chosen row's 0-based index; exits
-# the script quietly if the menu is dismissed. ACTIVE/URGENT are rofi row
-# lists like "0,3" and highlight rows (current network, connected device...).
+# Rows (Pango markup) on stdin. Prints the chosen row's 0-based index and
+# FAILS if the menu is dismissed. Callers must use `i=$(... | menu ...) ||
+# exit 0`: menu runs inside a command substitution, so an `exit` in here only
+# leaves that subshell -- the caller would carry on with an empty index, which
+# bash reads as row 0 (dismissing the power menu locked the screen).
+# ACTIVE/URGENT are rofi row lists like "0,3" that highlight rows.
 menu() {
   local args=(-config /etc/rofi/config.rasi -dmenu -i -markup-rows -no-custom -format i -p "$1")
   [ -n "${2:-}" ] && args+=(-mesg "$2")
   [ -n "${3:-}" ] && args+=(-a "$3")
   [ -n "${4:-}" ] && args+=(-u "$4")
-  rofi "${args[@]}" || exit 0
+  rofi "${args[@]}"
 }
 
 # ask PROMPT [password] -> typed text (masked when "password")
 ask() {
   local args=(-config /etc/rofi/config.rasi -dmenu -p "$1" -l 0)
   [ "${2:-}" = password ] && args+=(-password)
-  rofi "${args[@]}" </dev/null || exit 0
+  rofi "${args[@]}" </dev/null
 }
 
 note() { notify-send -t 2500 "$1" "${2:-}"; }
+
+# confirm WHAT -> succeeds only on an explicit "Yes" (No is the default row)
+confirm() {
+  local i
+  i=$(printf '%s\n' "$(row "$QM_DIM" "$G_BACK" "No")" "$(row "$QM_HOT" "$G_POWER" "Yes, $1")" |
+    menu "$1?") || return 1
+  [ "$i" = 1 ]
+}

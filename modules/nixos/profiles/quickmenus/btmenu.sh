@@ -51,7 +51,7 @@ device_menu() {
 
   local mesg="$mac" s
   for s in "${state[@]}"; do mesg+=" · $s"; done
-  i=$(printf '%s\n' "${rows[@]}" | menu "$name" "$(esc "$mesg")")
+  i=$(printf '%s\n' "${rows[@]}" | menu "$name" "$(esc "$mesg")") || exit 0
 
   case "${acts[$i]}" in
     connect)
@@ -83,12 +83,12 @@ device_menu() {
 
 if [ -n "${1:-}" ]; then device_menu "$1"; fi
 
+# Order: devices and scan first, the power toggle last -- the first row is
+# pre-selected, so an accidental Enter must never turn Bluetooth off.
 rows=() acts=() active=()
 if ! flag Powered "$show"; then
   rows+=("$(row "$QM_DIM" "$G_OFF" "Bluetooth is off" "tap to turn on")"); acts+=(power-on)
 else
-  rows+=("$(row "$QM_OK" "$G_ON" "Bluetooth on" "tap to turn off")"); acts+=(power-off)
-
   # Devices: connected first, then paired, then everything else seen.
   declare -a conn=() paired=() other=()
   while read -r _ mac _; do
@@ -124,13 +124,14 @@ else
   else
     rows+=("$(row "$QM_DIM" "$G_EYE" "Discoverable")"); acts+=(discoverable-on)
   fi
+  rows+=("$(row "$QM_OK" "$G_ON" "Bluetooth on" "tap to turn off")"); acts+=(power-off)
 fi
 rows+=("$(row "$QM_DIM" "$G_TERM" "bluetoothctl")"); acts+=(terminal)
 
 controller=$(awk '/Name:/ { sub(/.*Name: /, ""); print; exit }' <<<"$show")
 mesg="$(esc "${controller:-no controller}")"
 flag Discovering "$show" && mesg="$mesg · <span color=\"$QM_WARN\">scanning...</span>"
-i=$(printf '%s\n' "${rows[@]}" | menu bluetooth "$mesg" "$(IFS=,; echo "${active[*]}")")
+i=$(printf '%s\n' "${rows[@]}" | menu bluetooth "$mesg" "$(IFS=,; echo "${active[*]}")") || exit 0
 
 case "${acts[$i]}" in
   power-on) bluetoothctl power on >/dev/null ;;

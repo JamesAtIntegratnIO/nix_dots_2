@@ -48,7 +48,7 @@ rows+=("$(row "$QM_DIM" "$G_GEAR" "Advanced (pavucontrol)")"); acts+=(pavucontro
 mesg="$pct%"
 $muted && mesg="<span color=\"$QM_HOT\">muted</span> ($pct%)"
 [ -n "$current_desc" ] && mesg="$mesg · $(esc "$current_desc")"
-i=$(printf '%s\n' "${rows[@]}" | menu volume "$mesg" "$(IFS=,; echo "${active[*]}")")
+i=$(printf '%s\n' "${rows[@]}" | menu volume "$mesg" "$(IFS=,; echo "${active[*]}")") || exit 0
 
 case "${acts[$i]}" in
   mute) wpctl set-mute "$sink" toggle ;;

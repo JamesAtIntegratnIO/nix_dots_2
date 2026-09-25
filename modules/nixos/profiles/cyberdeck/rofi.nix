@@ -100,7 +100,7 @@ let
     ];
     text = ''
       if pkill -x rofi; then exit 0; fi
-      exec rofi -config /etc/rofi/config.rasi -show drun -p apps
+      exec rofi -config /etc/rofi/config.rasi -show drun -display-drun apps
     '';
   };
 in

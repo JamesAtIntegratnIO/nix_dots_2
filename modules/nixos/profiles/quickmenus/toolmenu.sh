@@ -25,7 +25,7 @@ for t in "${tools[@]}"; do
   IFS='|' read -r glyph label hint _ <<<"$t"
   rows+=("$(row "$QM_ACCENT" "$glyph" "$label" "$hint")")
 done
-i=$(printf '%s\n' "${rows[@]}" | menu tools)
+i=$(printf '%s\n' "${rows[@]}" | menu tools) || exit 0
 IFS='|' read -r _ label _ cmd <<<"${tools[$i]}"
 
 case "$cmd" in

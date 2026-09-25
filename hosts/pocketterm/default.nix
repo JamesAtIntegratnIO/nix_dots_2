@@ -31,6 +31,8 @@ in
 
   networking.hostName = "pocketterm";
   networking.networkmanager.enable = true;
+  # INFO (default WARN) so a stalled Wi-Fi activation shows where it stuck.
+  networking.networkmanager.logLevel = "INFO";
 
   # Matches the layout written by `.#pocketterm-sdimage`. Declared here so the
   # deployable config (target-host rebuilds) is valid too; mkDefault lets the
