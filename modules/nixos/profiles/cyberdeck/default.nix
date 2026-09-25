@@ -39,7 +39,71 @@ let
     cpu = icon "uf2db";
     memory = icon "udb80\\udf5b";
     temp = icon "uf2c9";
+    power = icon "uf011";
+    lock = icon "uf023";
+    logout = icon "uf08b";
+    reboot = icon "uf021";
   };
+
+  # Power menu (bar button, Super+Shift+E, Super+Escape, the Pi's power
+  # button). Everything but Lock asks again, so a stray tap can't power off.
+  powermenu = pkgs.writeShellApplication {
+    name = "powermenu";
+    runtimeInputs = with pkgs; [
+      fuzzel
+      procps
+      swaylock
+      sway
+      systemd
+    ];
+    text = ''
+      menu() { fuzzel --dmenu --prompt "$1 ❯ " --lines "$2" --width 18; }
+      confirm() { [ "$(printf 'No\nYes\n' | menu "$1?" 2)" = Yes ]; }
+
+      pkill -x fuzzel && exit 0 # second press closes an open menu
+      choice=$(printf '%s\n' \
+        "${i.lock}  Lock" \
+        "${i.logout}  Log out" \
+        "${i.reboot}  Reboot" \
+        "${i.power}  Power off" | menu power 4) || exit 0
+
+      case "$choice" in
+        *Lock) swaylock -f ;;
+        *"Log out") confirm "Log out" && swaymsg exit ;;
+        *Reboot) confirm Reboot && systemctl reboot ;;
+        *"Power off") confirm "Power off" && systemctl poweroff ;;
+      esac
+    '';
+  };
+
+  swaylockConfig = ''
+    image=${wallpaper}
+    scaling=fill
+    font=${font}
+    indicator-radius=56
+    indicator-thickness=5
+    show-failed-attempts
+    ignore-empty-password
+    inside-color=${p.base}cc
+    ring-color=${p.cyan}ff
+    key-hl-color=${p.green}ff
+    bs-hl-color=${p.magenta}ff
+    text-color=${p.text}ff
+    line-color=00000000
+    separator-color=00000000
+    inside-clear-color=${p.base}cc
+    ring-clear-color=${p.amber}ff
+    text-clear-color=${p.amber}ff
+    inside-ver-color=${p.base}cc
+    ring-ver-color=${p.blue}ff
+    text-ver-color=${p.blue}ff
+    inside-wrong-color=${p.base}cc
+    ring-wrong-color=${p.red}ff
+    text-wrong-color=${p.red}ff
+    line-clear-color=00000000
+    line-ver-color=00000000
+    line-wrong-color=00000000
+  '';
 
   cursor = {
     name = "Bibata-Modern-Classic";
@@ -76,7 +140,13 @@ let
         "cpu"
         "memory"
         "temperature"
+        "custom/power"
       ];
+      "custom/power" = {
+        format = i.power;
+        tooltip = false;
+        on-click = "powermenu";
+      };
       "custom/logo" = {
         format = i.nixos;
         tooltip = false;
@@ -150,7 +220,8 @@ let
     #pulseaudio.muted { color: #${p.overlay}; }
     #cpu { color: #${p.green}; }
     #memory { color: #${p.purple}; }
-    #temperature { color: #${p.amber}; padding-right: 9px; }
+    #temperature { color: #${p.amber}; }
+    #custom-power { color: #${p.red}; padding: 0 10px 0 8px; font-size: 13px; }
     #temperature.critical { color: #${p.void}; background: #${p.red}; }
   '';
 
@@ -317,6 +388,7 @@ in
     "xdg/mako/config".source = makoConfig;
     "xdg/gtk-3.0/settings.ini".text = gtkSettings;
     "xdg/gtk-4.0/settings.ini".text = gtkSettings;
+    "swaylock/config".text = swaylockConfig;
   };
 
   systemd.tmpfiles.rules = [
@@ -351,6 +423,7 @@ in
   };
 
   environment.systemPackages = [
+    powermenu
     cursor.package
     gtkTheme.package
     iconTheme.package

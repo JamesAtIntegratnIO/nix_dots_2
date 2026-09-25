@@ -39,7 +39,11 @@ let
     bindsym $mod+d exec fuzzel
     bindsym $mod+e exec firefox
     bindsym $mod+f exec pcmanfm
-    bindsym $mod+Shift+e exit
+    # Power menu (lock / log out / reboot / power off, with confirmation).
+    # The Pi's power button opens it too; logind is told to ignore that key.
+    bindsym $mod+Shift+e exec powermenu
+    bindsym $mod+Escape exec powermenu
+    bindsym XF86PowerOff exec powermenu
 
     # Screenshots: whole screen to clipboard, or region (drag with touch/trackpad).
     bindsym $mod+s exec grim - | wl-copy
@@ -75,6 +79,10 @@ in
   # put our config there. (programs.sway.extraOptions only affects the `sway`
   # wrapper, which greetd bypasses, so the upstream default config was winning.)
   environment.etc."sway/config".source = lib.mkForce swayConfig;
+
+  # A short press of the Pi 5 power button opens the Sway power menu instead of
+  # powering straight off. Holding it still forces a hard power-off in firmware.
+  services.logind.settings.Login.HandlePowerKey = "ignore";
 
   services.greetd = {
     enable = true;
