@@ -36,6 +36,16 @@
         enable = true;
         value = 1;
       };
+      # Allow the full USB current budget (~1.6A across the ports) even when the
+      # firmware can't positively detect a 5A-capable (27W) PSU. Without this the
+      # Pi 5 caps USB power hard, and a hungry peripheral -- e.g. a WiFi Pineapple
+      # Pager drawing charge + running radios off a downstream port -- triggers a
+      # continuous over-current storm that keeps the device power-cycling before
+      # it can enumerate its USB-Ethernet gadget. Only safe on an adequate PSU.
+      usb_max_current_enable = {
+        enable = true;
+        value = 1;
+      };
     };
     base-dt-params = {
       # I2C-1 (GPIO2/3) carries the GT911 touch controller.
