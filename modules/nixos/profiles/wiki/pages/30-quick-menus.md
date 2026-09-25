@@ -9,7 +9,7 @@ Waybar widgets. Each is a command too (`netmenu`, `btmenu`, `volmenu`,
 | `Super+w` | Wi-Fi: join / disconnect / rescan / radio toggle / nmtui |
 | `Super+b` | Bluetooth: power / scan / pair / connect / trust / remove |
 | `Super+v` | Volume: mute / levels / output device / mic mute |
-| `Super+Shift+e` | Power: lock / log out / reboot / off |
+| `Super+Shift+e` | Power: lock / log out / reboot / off / battery saver |
 | `Super+t` | Field tools (opens in a terminal) |
 
 ## Wi-Fi from the shell

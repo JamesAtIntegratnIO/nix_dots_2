@@ -102,6 +102,13 @@ in
     "@wheel"
   ];
 
+  # 64 GB microSD shared with ROMs: collect garbage whenever free space drops
+  # under 3 GiB (up to 8 GiB free), on top of the weekly 30-day GC from core.
+  nix.settings = {
+    min-free = 3 * 1024 * 1024 * 1024;
+    max-free = 8 * 1024 * 1024 * 1024;
+  };
+
   # Keep this at the release used for the initial installation.
   system.stateVersion = "26.05";
 }
