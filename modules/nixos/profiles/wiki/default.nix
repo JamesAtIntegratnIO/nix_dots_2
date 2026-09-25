@@ -27,7 +27,7 @@ let
       pocketterm wiki -- offline reference
 
         wiki            browse every topic (type to filter, Enter reads, q quits)
-        wiki <query>    open topics whose text matches <query>
+        wiki <query>    open a topic by name (e.g. `wiki pager`), else by text
         wiki ls         list topics
         wiki -h         this help
       EOF
@@ -59,20 +59,36 @@ let
         read_page "$(printf '%s' "$sel" | cut -f2)"
       }
 
+      # Pages matching a query: page name first (e.g. `pager` -> 80-pager.md),
+      # else fall back to full-text search of the bodies.
+      resolve() {
+        local q="$1" f base slug
+        local -a fn=()
+        shopt -s nocasematch
+        for f in "$wiki_dir"/*.md; do
+          base=$(basename "$f" .md)   # e.g. 80-pager
+          slug=''${base#*-}             # drop the NN- prefix -> pager
+          if [[ "$base" == *"$q"* || "$slug" == *"$q"* ]]; then fn+=("$f"); fi
+        done
+        shopt -u nocasematch
+        if [ "''${#fn[@]}" -gt 0 ]; then
+          printf '%s\n' "''${fn[@]}"
+        else
+          rg -ilF -- "$q" "$wiki_dir"/*.md 2>/dev/null || true
+        fi
+      }
+
       case "''${1:-}" in
         "") browse "$wiki_dir"/*.md ;;
         ls) index "$wiki_dir"/*.md | cut -f1 ;;
         -h | --help | help) usage ;;
         *)
-          mapfile -t hits < <(rg -ilF -- "$*" "$wiki_dir"/*.md 2>/dev/null || true)
-          if [ "''${#hits[@]}" -eq 0 ]; then
-            echo "wiki: nothing matches: $*  (try: wiki ls)" >&2
-            exit 1
-          elif [ "''${#hits[@]}" -eq 1 ]; then
-            read_page "''${hits[0]}"
-          else
-            browse "''${hits[@]}"
-          fi
+          mapfile -t hits < <(resolve "$*")
+          case "''${#hits[@]}" in
+            0) echo "wiki: nothing matches: $*  (try: wiki ls)" >&2; exit 1 ;;
+            1) read_page "''${hits[0]}" ;;
+            *) browse "''${hits[@]}" ;;
+          esac
           ;;
       esac
     '';
