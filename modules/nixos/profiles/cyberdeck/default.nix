@@ -344,6 +344,10 @@ let
     gtk-cursor-theme-size=${toString cursor.size}
     gtk-font-name=Noto Sans 10
     gtk-application-prefer-dark-theme=1
+    # Touch: a finger's two taps land further apart and slower than a mouse's
+    # double-click (GTK defaults: 5px, 400ms), so double-taps never counted.
+    gtk-double-click-distance=24
+    gtk-double-click-time=500
   '';
 in
 {
@@ -379,6 +383,9 @@ in
     enable = true;
     profiles.user.databases = [
       {
+        # GTK on Wayland reads the double-click time from here (the distance
+        # has no GSettings key and comes from settings.ini).
+        settings."org/gnome/desktop/peripherals/mouse".double-click = lib.gvariant.mkInt32 500;
         settings."org/gnome/desktop/interface" = {
           color-scheme = "prefer-dark";
           gtk-theme = gtkTheme.name;
