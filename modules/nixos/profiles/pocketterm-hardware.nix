@@ -46,10 +46,26 @@
         enable = true;
         value = 1;
       };
+      # Cap the CPU at 1.8 GHz (stock 2.4). The chassis leaves 2.5 mm above the
+      # board, so cooling is marginal at best: this cuts peak heat and battery
+      # draw for little loss in terminal/desktop use. Remove to restore 2.4 GHz.
+      arm_freq = {
+        enable = true;
+        value = 1800;
+      };
     };
     base-dt-params = {
       # I2C-1 (GPIO2/3) carries the GT911 touch controller.
       i2c_arm = {
+        enable = true;
+        value = "on";
+      };
+      # Enable the fan on the Pi 5's 4-pin fan header (the cooling_fan node and
+      # its RP1 PWM). The firmware only turns it on when it detects a fan at
+      # boot; forcing it keeps the fan under kernel control (pwm-fan, autoloaded;
+      # steps at 50/60/67.5/75 C) for any header fan -- the Active Cooler or the
+      # PCIe TO M.2 Board (E)'s fan. Harmless with nothing plugged in.
+      cooling_fan = {
         enable = true;
         value = "on";
       };
