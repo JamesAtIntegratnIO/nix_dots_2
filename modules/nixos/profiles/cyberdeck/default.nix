@@ -397,6 +397,7 @@ in
   imports = [
     ./terminal.nix
     ./firefox.nix
+    ./toolmenu.nix
   ];
 
   environment.etc = {
