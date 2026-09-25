@@ -50,6 +50,10 @@
         # Hold Select + press Start to open the menu in-game.
         input_enable_hotkey = "pause";
         input_menu_toggle = "print_screen";
+        # Game Focus must stay off: it blocks every keyboard-mapped RetroPad
+        # bind (and hotkeys), and our "gamepad" IS the keyboard. With it "1"
+        # (always on) the menu worked but games received no input at all.
+        input_auto_game_focus = "0";
 
         # Library: boxart auto-downloads while browsing; browse from ~/ROMs.
         network_on_demand_thumbnails = "true";
