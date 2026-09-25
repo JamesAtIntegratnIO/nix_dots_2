@@ -387,6 +387,8 @@ let
   '';
 in
 {
+  imports = [ ./terminal.nix ];
+
   environment.etc = {
     "sway/config.d/theme.conf".source = swayTheme;
     "xdg/waybar/config".source = waybarConfig;
