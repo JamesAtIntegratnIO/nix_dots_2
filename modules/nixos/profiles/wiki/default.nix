@@ -42,8 +42,11 @@ let
         done
       }
 
-      # Full-screen read with glow's built-in pager (auto-detects width).
-      read_page() { glow -s dark -p "$1"; }
+      # Page through glow on a terminal; plain render when piped or over a
+      # non-interactive SSH command, so it never hangs waiting on a pager.
+      read_page() {
+        if [ -t 1 ]; then glow -s dark -p "$1"; else glow -s dark "$1"; fi
+      }
 
       # fzf picker over the given pages; Enter opens the choice.
       browse() {
