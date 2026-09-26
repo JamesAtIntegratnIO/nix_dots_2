@@ -226,6 +226,12 @@ in
     };
   };
 
+  # Unlock the gnome-keyring login keyring on a password login through the
+  # greeter. The autologin session has no password to unlock it with, so
+  # there the keyring asks once per boot on first use (or never, if its
+  # password is left empty).
+  security.pam.services.greetd.enableGnomeKeyring = true;
+
   environment.systemPackages = with pkgs; [
     # Session
     foot # terminal (touchscreen selection)

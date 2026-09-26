@@ -28,6 +28,7 @@ in
     ../../modules/nixos/profiles/security-keys.nix
     ../../modules/nixos/profiles/power.nix
     ../../modules/nixos/profiles/emulation.nix
+    ../../modules/nixos/profiles/element.nix
   ];
 
   networking.hostName = "pocketterm";

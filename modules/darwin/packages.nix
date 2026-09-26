@@ -49,6 +49,11 @@ let
     docker-sbx
   ];
 
+  # Chat
+  chat = with pkgs; [
+    element-desktop # Matrix client
+  ];
+
   # Local AI stack
   ai = [
     pkgs.lmstudio
@@ -57,5 +62,5 @@ let
   ];
 in {
   # Flat list for environment.systemPackages.
-  all = vcs ++ editors ++ network ++ monitoring ++ utils ++ languages ++ containers ++ ai;
+  all = vcs ++ editors ++ network ++ monitoring ++ utils ++ languages ++ containers ++ chat ++ ai;
 }

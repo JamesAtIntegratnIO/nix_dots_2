@@ -11,6 +11,7 @@
 | zathura | - | `zathura <file.pdf>` | PDF |
 | mpv | - | `mpv <file>` | Video / audio |
 | pavucontrol | - | `pavucontrol` | Audio mixer |
+| Element | - | `element-desktop` | Matrix chat |
 
 Tapping a file opens it in the app above (xdg defaults); web links open in
 Firefox.
