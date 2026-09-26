@@ -1,4 +1,5 @@
-# x86_64 GitHub Actions runner: VM 120 on the Proxmox host at 192.168.0.10.
+# x86_64 GitHub Actions runner: VM 120 on the Proxmox host at 192.168.0.10,
+# on the Homelab VLAN (tag 25) with a DHCP reservation for 10.0.1.31.
 {
   inputs,
   modulesPath,

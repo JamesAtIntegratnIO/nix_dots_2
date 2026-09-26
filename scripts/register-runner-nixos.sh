@@ -13,10 +13,10 @@
 # in the unit's StateDirectory afterwards.
 #
 # usage: scripts/register-runner-nixos.sh [host]
-#   e.g. scripts/register-runner-nixos.sh root@192.168.0.31
+#   e.g. scripts/register-runner-nixos.sh root@10.0.1.31
 set -euo pipefail
 
-host="${1:-root@192.168.0.31}"
+host="${1:-root@10.0.1.31}"
 flake_host="ghrunner"
 token_dir="/var/lib/github-runner-tokens"
 
