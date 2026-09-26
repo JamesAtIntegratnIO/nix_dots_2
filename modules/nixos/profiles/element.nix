@@ -20,7 +20,7 @@ in
   environment.systemPackages = [ element ];
 
   # The Secret Service Element stores its keys in. Cinnamon already turns
-  # this on; Sway needs it here.
+  # this on.
   services.gnome.gnome-keyring.enable = true;
 
   # Run Electron apps as native Wayland clients under Sway instead of through

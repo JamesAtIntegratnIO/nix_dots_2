@@ -226,6 +226,9 @@ in
     };
   };
 
+  # Secret Service for apps that keep keys in it (Fractal's Matrix session).
+  services.gnome.gnome-keyring.enable = true;
+
   # Unlock the gnome-keyring login keyring on a password login through the
   # greeter. The autologin session has no password to unlock it with, so
   # there the keyring asks once per boot on first use (or never, if its
@@ -249,6 +252,7 @@ in
     zathura # PDF viewer
     mousepad # lightweight text editor
     pavucontrol # audio control
+    fractal # Matrix client; adaptive GTK4 layout, unlike Element
 
     # Terminal file manager (lighter than a GUI on this screen)
     yazi
