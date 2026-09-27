@@ -17,6 +17,15 @@
 set -euo pipefail
 
 host="${1:-root@10.0.1.31}"
+
+# api_base is where GitHub keeps a scope's runners: an organization's when the
+# instance's url names only an org, a repository's when it names owner/repo.
+api_base() {
+  case "$1" in
+    */*) echo "repos/$1" ;;
+    *) echo "orgs/$1" ;;
+  esac
+}
 flake_host="ghrunner"
 token_dir="/var/lib/github-runner-tokens"
 
@@ -43,10 +52,10 @@ fi
 for entry in "${instances[@]}"; do
   instance="${entry%% *}"
   url="${entry##* }"
-  repo="${url#https://github.com/}"
+  scope="${url#https://github.com/}"
 
-  echo "==> Minting a registration token for ${instance} (${repo})"
-  token="$(gh api -X POST "repos/${repo}/actions/runners/registration-token" -q .token)"
+  echo "==> Minting a registration token for ${instance} (${scope})"
+  token="$(gh api -X POST "$(api_base "$scope")/actions/runners/registration-token" -q .token)"
 
   # The token file is the credential; 0600 and root-owned, in a directory the
   # module's tmpfiles rule already created as 0700.
@@ -60,7 +69,7 @@ echo
 echo "==> Runners now known to GitHub:"
 for entry in "${instances[@]}"; do
   url="${entry##* }"
-  repo="${url#https://github.com/}"
-  gh api "repos/${repo}/actions/runners" \
+  scope="${url#https://github.com/}"
+  gh api "$(api_base "$scope")/actions/runners" \
     -q '.runners[] | "\(.name)\t\(.status)\tlabels=\([.labels[].name]|join(","))"'
 done | sort -u

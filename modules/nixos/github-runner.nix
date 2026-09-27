@@ -2,8 +2,13 @@
 let
   runnerUser = "ghrunner";
 
-  # Scope is fixed at registration and one instance takes one job at a time, so
-  # a repository that wants this host needs an instance of its own here.
+  # Scope is fixed at registration and one instance takes one job at a time.
+  # The specmarshal instances are registered to the IntegratnIO organization
+  # rather than to one repository, so the org's default runner group hands them
+  # jobs from every IntegratnIO repository — the core, specmarshal-registry and
+  # specmarshal-pro — without an instance per repository. They keep their names
+  # so their state directories stay put. runwright is a personal-account
+  # repository and cannot be served by an org runner, so it keeps its own.
   #
   # specmarshal has eight rather than the darwin module's four. This host is
   # x86_64, so it takes the image matrix's amd64 leg natively instead of the
@@ -19,7 +24,7 @@ let
     map
       (n: {
         name = if n == 1 then "specmarshal" else "specmarshal-${toString n}";
-        value = "IntegratnIO/specmarshal";
+        value = "IntegratnIO";
       })
       (lib.range 1 specmarshalInstances)
   );

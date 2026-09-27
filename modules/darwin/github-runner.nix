@@ -5,9 +5,12 @@ let
 
   # Each registered runner instance, as a directory under
   # ${runnerHome}/actions-runner. A runner's scope is fixed when it is
-  # registered and no workflow can widen it, so a repository that wants this
-  # workstation needs an instance of its own here. Registration itself stays
-  # manual, because it mints a credential; this only supervises what exists.
+  # registered and no workflow can widen it. The specmarshal instances are
+  # registered to the IntegratnIO organization, so they take jobs from every
+  # IntegratnIO repository (the core, specmarshal-registry, specmarshal-pro);
+  # runwright is a personal-account repository and keeps an instance of its
+  # own. Registration itself stays manual, because it mints a credential; this
+  # only supervises what exists (scripts/register-runner.sh).
   #
   # specmarshal has four, because an instance takes one job at a time and its
   # image matrix fans out to five arm64 builds. On one instance those queue
