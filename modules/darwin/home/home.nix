@@ -4,6 +4,7 @@ let
   opencodeModule = import ./opencode/default.nix { inherit pkgs username lib inputs; };
   hermesModule = import ./hermes/default.nix { inherit pkgs username lib inputs; };
   remoteDevModule = import ./remote-dev.nix { inherit pkgs lib; };
+  taildropModule = import ./taildrop.nix { inherit pkgs lib username; };
 in
 lib.mkMerge [
   {
@@ -68,4 +69,5 @@ lib.mkMerge [
   opencodeModule
   hermesModule
   remoteDevModule
+  taildropModule
 ]
