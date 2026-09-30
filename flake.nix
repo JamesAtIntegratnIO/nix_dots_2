@@ -103,6 +103,25 @@
       packages.aarch64-linux.pocketterm-sdimage =
         inputs.self.nixosConfigurations.pocketterm-sdimage.config.system.build.sdImage;
 
+      # Headless Pi 5 at Mom's house for remote network support.
+      nixosConfigurations.mom-support-pi = inputs.nixos-raspberrypi.lib.nixosSystem {
+        specialArgs = { inherit inputs; };
+        modules = [ ./hosts/mom-support-pi ];
+      };
+
+      # First-install image, written to the NVMe drive (not an SD card):
+      # `nix build .#packages.aarch64-linux.mom-support-pi-image` on the Mac Studio.
+      nixosConfigurations.mom-support-pi-image = inputs.nixos-raspberrypi.lib.nixosSystem {
+        specialArgs = { inherit inputs; };
+        modules = [
+          ./hosts/mom-support-pi
+          inputs.nixos-raspberrypi.nixosModules.sd-image
+        ];
+      };
+
+      packages.aarch64-linux.mom-support-pi-image =
+        inputs.self.nixosConfigurations.mom-support-pi-image.config.system.build.sdImage;
+
       formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt-tree;
 
       devShells.${system}.default =

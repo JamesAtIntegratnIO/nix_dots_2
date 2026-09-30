@@ -120,6 +120,37 @@ run `passwd` for the `jdreier` user, then deploy updates over SSH:
 ```console
 nixos-rebuild switch --flake .#pocketterm --target-host jdreier@pocketterm --use-remote-sudo
 ```
+
+## mom-support-pi
+
+`hosts/mom-support-pi` is a headless Raspberry Pi 5 on NVMe that sits on Mom's
+LAN (`192.168.1.0/24`) for remote network support. It is a Tailscale subnet
+router for her LAN and an exit node, and it accepts tailnet routes so her
+devices can reach home services (Plex) through it. `network.nix` has the
+routing details.
+
+### First install
+
+Do these at home, before the Pi goes to her house:
+
+1. Set the Pi 5's EEPROM to try NVMe first (`BOOT_ORDER=0xf416`; add
+   `PCIE_PROBE=1` for a non-HAT+ adapter), for example from Raspberry Pi OS on a
+   spare SD card with `sudo rpi-eeprom-config --edit`.
+2. `nix build .#packages.aarch64-linux.mom-support-pi-image`, then write
+   `result/sd-image/*.img.zst` to the NVMe drive in a USB enclosure (same `zstd
+   -dc … | sudo dd` as the PocketTerm image). The root partition grows to fill
+   the drive on first boot.
+3. Boot it on the home LAN, SSH in as `root`, run `tailscale up`, then in the
+   Tailscale admin console approve the exit node and disable key expiry for
+   the node. Hold off on the `192.168.1.0/24` route: it overlaps home's HomeNet
+   (see the note in `network.nix`). Renumber her LAN or switch to 4via6 first.
+
+After that, deploy over the tailnet. The script rolls back on its own if it
+can't reach the new generation within 3 minutes:
+
+```console
+scripts/deploy-mom-support-pi.sh
+```
 Ollama stays installed with its service disabled. Existing data and credentials
 remain at their original `/Users/jdreier` paths. Nix management stays disabled
 in nix-darwin (`nix.enable = false`), as in the original configuration.
