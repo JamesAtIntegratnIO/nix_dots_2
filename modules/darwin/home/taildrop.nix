@@ -36,18 +36,26 @@ let
       fi
     done
 
-    targets=()
+    # Online Taildrop targets as name:os, so the picker can show device icons.
+    declare -A os
+    while IFS=$'\t' read -r name kind; do
+      os[$name]=$kind
+    done < <(${tailscale} status --json |
+      ${pkgs.jq}/bin/jq -r '.Peer[] | [(.DNSName | split(".")[0]), .OS] | @tsv')
+    devices=()
     while IFS=$'\t' read -r _ name status; do
-      [[ "$status" == *offline* ]] || targets+=("$name")
+      [[ "$status" == *offline* ]] || devices+=("$name:''${os[$name]:-}")
     done < <(${tailscale} file cp --targets)
-    if ((''${#targets[@]} == 0)); then
+    if ((''${#devices[@]} == 0)); then
       alert "No Taildrop targets are online."
       exit 1
     fi
 
-    list=$(printf '"%s",' "''${targets[@]}")
-    choice=$(/usr/bin/osascript -e "choose from list {''${list%,}} with title \"Taildrop\" with prompt \"Send $# file(s) to:\"")
-    [[ "$choice" == false || -z "$choice" ]] && exit 0
+    if ! choice=$(/usr/bin/osascript -l JavaScript ${./taildrop-picker.js} "$@" -- "''${devices[@]}" 2>&1); then
+      alert "The device picker failed: ''${choice//\"/}"
+      exit 1
+    fi
+    [[ -z "$choice" ]] && exit 0
 
     if err=$(${tailscale} file cp "$@" "$choice:" 2>&1); then
       /usr/bin/osascript -e "display notification \"Sent $# file(s) to $choice\" with title \"Taildrop\""
