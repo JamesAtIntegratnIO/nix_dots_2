@@ -66,9 +66,34 @@ in
     };
   };
 
-  # Show up under Network in Windows Explorer (Macs find it via avahi).
+  # Show up under Network in Windows Explorer...
   services.samba-wsdd = {
     enable = true;
     openFirewall = true;
+  };
+
+  # ...and in Finder's sidebar. nixpkgs' Samba is built without mDNS, so
+  # advertise the share through avahi directly.
+  services.avahi = {
+    publish = {
+      enable = true;
+      userServices = true;
+    };
+    extraServiceFiles.smb = ''
+      <?xml version="1.0" standalone="no"?>
+      <!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+      <service-group>
+        <name replace-wildcards="yes">%h</name>
+        <service>
+          <type>_smb._tcp</type>
+          <port>445</port>
+        </service>
+        <service>
+          <type>_device-info._tcp</type>
+          <port>0</port>
+          <txt-record>model=RackMac</txt-record>
+        </service>
+      </service-group>
+    '';
   };
 }

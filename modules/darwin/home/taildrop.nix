@@ -57,20 +57,7 @@ let
     fi
   '';
 
-  service = "Library/Services/Send with Taildrop.workflow/Contents";
-in
-{
-  launchd.agents.taildrop-receive = {
-    enable = true;
-    config = {
-      ProgramArguments = [ "${receive}" ];
-      RunAtLoad = true;
-      KeepAlive = true;
-      ProcessType = "Background";
-    };
-  };
-
-  home.file."${service}/Info.plist".text = ''
+  infoPlist = pkgs.writeText "Info.plist" ''
     <?xml version="1.0" encoding="UTF-8"?>
     <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
     <plist version="1.0">
@@ -102,7 +89,7 @@ in
 
   # A single "Run Shell Script" action (files passed as arguments), in the
   # format Automator itself writes.
-  home.file."${service}/document.wflow".text = ''
+  documentWflow = pkgs.writeText "document.wflow" ''
     <?xml version="1.0" encoding="UTF-8"?>
     <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
     <plist version="1.0">
@@ -312,8 +299,32 @@ in
     </plist>
   '';
 
-  # Make Finder pick up the Quick Action without a logout.
-  home.activation.refreshServices = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-    /System/Library/CoreServices/pbs -update || true
+  workflow = pkgs.runCommand "send-with-taildrop-workflow" { } ''
+    mkdir -p $out/Contents
+    cp ${infoPlist} $out/Contents/Info.plist
+    cp ${documentWflow} $out/Contents/document.wflow
+  '';
+in
+{
+  launchd.agents.taildrop-receive = {
+    enable = true;
+    config = {
+      ProgramArguments = [ "${receive}" ];
+      RunAtLoad = true;
+      KeepAlive = true;
+      ProcessType = "Background";
+    };
+  };
+
+  # Installed as real files, not home.file links: macOS ignores a Quick Action
+  # whose plists are symlinks into the Nix store. Then make Finder pick it up
+  # without a logout.
+  home.activation.taildropQuickAction = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    target="$HOME/Library/Services/Send with Taildrop.workflow"
+    run rm -rf "$target"
+    run mkdir -p "$HOME/Library/Services"
+    run cp -R ${workflow} "$target"
+    run chmod -R u+w "$target"
+    run /System/Library/CoreServices/pbs -update || true
   '';
 }
