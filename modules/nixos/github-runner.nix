@@ -90,6 +90,12 @@ in
   virtualisation.docker = {
     enable = true;
     autoPrune.enable = true;
+    # The containerd image store, as colima's daemon on the Mac runner uses.
+    # Specmarshal's Version workflow builds each image to an OCI layout
+    # (`docker buildx build --output type=oci`), which the docker driver writes
+    # only over this store. Images in the old store are not carried across:
+    # the first builds after the switch pull and build from cold.
+    daemon.settings.features.containerd-snapshotter = true;
   };
 
   users.groups.${runnerUser} = { };
