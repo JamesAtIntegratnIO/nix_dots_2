@@ -4,6 +4,7 @@
   imports = [
     ./ai.nix
     ./cinnamon.nix
+    ./cyberdeck.nix
     ./development.nix
     ./git.nix
     ./remote-dev.nix
