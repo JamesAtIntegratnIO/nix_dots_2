@@ -53,5 +53,24 @@ in
     studioDesktop
     pkgs.rustdesk-flutter
   ];
+
+  # rustdesk-flutter ships its own menu entry, but studio-desktop is a bare
+  # script, so the Studio session was reachable only from a terminal. Exec is
+  # the store path rather than the bare name: the launcher then works whatever
+  # the session PATH looks like. The icon comes from rustdesk-flutter.
+  xdg.desktopEntries.studio-desktop = {
+    name = "Studio Desktop";
+    genericName = "Remote Desktop";
+    comment = "RustDesk session on the Mac Studio over Tailscale";
+    exec = "${studioDesktop}/bin/studio-desktop";
+    icon = "rustdesk";
+    terminal = false;
+    categories = [
+      "Network"
+      "RemoteAccess"
+    ];
+    settings.Keywords = "rustdesk;remote;studio;mac;";
+  };
+
   programs.zsh.shellAliases.studio-code = "code --remote ssh-remote+studio /Users/jdreier/Projects";
 }
