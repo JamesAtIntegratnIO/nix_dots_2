@@ -4,17 +4,26 @@
 {
   pkgs,
   palette,
+  # Extra wallpaper.nix arguments (size, labels) for a host other than the
+  # PocketTerm.
+  wallpaperArgs ? { },
+  description ? "PocketTerm35 cyberdeck boot splash",
 }:
 
 let
   p = palette;
 
-  splash = import ./wallpaper.nix {
-    inherit pkgs palette;
-    name = "pocketterm-splash";
-    statusText = "◌ BOOTING";
-    statusColor = p.amber;
-  };
+  splash = import ./wallpaper.nix (
+    {
+      inherit pkgs palette;
+      name = "pocketterm-splash";
+    }
+    // wallpaperArgs
+    // {
+      statusText = "◌ BOOTING";
+      statusColor = p.amber;
+    }
+  );
 
   # Plymouth's script API takes 0..1 floats; convert a palette hex string.
   hexDigit = c: (builtins.fromTOML "x = 0x${c}").x;
@@ -43,13 +52,39 @@ let
     }
     Plymouth.SetBootProgressFunction(progress_cb);
 
+    # The wallpaper is laid out in units of h/480 px on both axes (its width
+    # follows the aspect ratio), so left-anchored positions scale with h.
+    u = h / 480;
+
     # Boot/shutdown messages in the bottom-left HUD slot.
     msg = Sprite();
-    msg.SetPosition(Math.Int(w * 30 / 640), Math.Int(h * 440 / 480), 20);
+    msg.SetPosition(Math.Int(u * 30), Math.Int(u * 440), 20);
     fun message_cb(text) {
       msg.SetImage(Image.Text(text, ${rgb p.subtext}, 1, "JetBrainsMono Nerd Font 9"));
     }
     Plymouth.SetMessageFunction(message_cb);
+
+    # Passphrase prompt (LUKS on the laptop), under the wordmark's prompt line:
+    # the prompt text, then one bullet per typed character and a block cursor.
+    pw_prompt = Sprite();
+    pw_prompt.SetPosition(Math.Int(u * 58), Math.Int(u * 270), 30);
+    pw_entry = Sprite();
+    pw_entry.SetPosition(Math.Int(u * 58), Math.Int(u * 286), 30);
+    fun password_cb(prompt, bullets) {
+      if (prompt == "") prompt = "PASSPHRASE";
+      pw_prompt.SetImage(Image.Text(prompt, ${rgb p.cyan}, 1, "JetBrainsMono Nerd Font 11"));
+      dots = "";
+      for (i = 0; i < bullets; i++) dots += "•";
+      pw_entry.SetImage(Image.Text("❯ " + dots + "█", ${rgb p.green}, 1, "JetBrainsMono Nerd Font 14"));
+      pw_prompt.SetOpacity(1);
+      pw_entry.SetOpacity(1);
+    }
+    Plymouth.SetDisplayPasswordFunction(password_cb);
+    fun normal_cb() {
+      pw_prompt.SetOpacity(0);
+      pw_entry.SetOpacity(0);
+    }
+    Plymouth.SetDisplayNormalFunction(normal_cb);
   '';
 in
 pkgs.runCommand "plymouth-theme-cyberdeck"
@@ -66,7 +101,7 @@ pkgs.runCommand "plymouth-theme-cyberdeck"
     cat > $dir/cyberdeck.plymouth <<EOF
     [Plymouth Theme]
     Name=Cyberdeck
-    Description=PocketTerm35 cyberdeck boot splash
+    Description=${description}
     ModuleName=script
 
     [script]

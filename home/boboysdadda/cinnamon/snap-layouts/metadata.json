@@ -1,0 +1,7 @@
+{
+  "uuid": "snap-layouts@local",
+  "name": "Snap Layouts",
+  "description": "Drag a window to the top edge for a layout picker; tiling layouts, Fill, Center and Full Screen in the window menu (Super+Z).",
+  "version": 1,
+  "cinnamon-version": ["6.6"]
+}

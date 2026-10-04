@@ -5,11 +5,24 @@
     source = ./cinnamon/fullscreen-spaces;
     recursive = true;
   };
+  # Its stylesheet.css comes from cyberdeck.nix, in the palette.
+  xdg.dataFile."cinnamon/extensions/snap-layouts@local" = {
+    source = ./cinnamon/snap-layouts;
+    recursive = true;
+  };
 
   dconf.settings = {
-    "org/cinnamon".enabled-extensions = [ "fullscreen-spaces@local" ];
+    "org/cinnamon".enabled-extensions = [
+      "fullscreen-spaces@local"
+      "snap-layouts@local"
+    ];
     "org/cinnamon/desktop/wm/preferences".num-workspaces = 1;
-    "org/cinnamon/muffin".workspace-cycle = true;
+    "org/cinnamon/muffin" = {
+      workspace-cycle = true;
+      # Drag to the left/right edge for halves, a corner for quarters, the top
+      # to maximize (or onto snap-layouts' picker for other layouts).
+      edge-tiling = true;
+    };
 
     # Keep csd-power out of the lid switch; logind handles it (see
     # modules/nixos/profiles/laptop.nix). inhibit-lid-switch = false is the

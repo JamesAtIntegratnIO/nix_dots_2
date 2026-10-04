@@ -67,12 +67,12 @@
         modules = import ./hosts/mac-studio { inherit inputs; };
       };
 
-      nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+      nixosConfigurations.carbonite = nixpkgs.lib.nixosSystem {
         inherit system;
 
         specialArgs = { inherit inputs; };
 
-        modules = [ ./hosts/nixos ];
+        modules = [ ./hosts/carbonite ];
       };
 
       nixosConfigurations.ghrunner = nixpkgs.lib.nixosSystem {

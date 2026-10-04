@@ -1,8 +1,9 @@
 # NixOS laptop and Mac Studio configuration
 
-This flake manages the NixOS host `nixos` and Apple Silicon Mac `mac-studio`.
-Host-specific hardware and identity live under `hosts/`; operating-system
-configuration lives under `modules/nixos/` and `modules/darwin/`.
+This flake manages the NixOS laptop `carbonite` (a ThinkPad X1 Carbon) and
+Apple Silicon Mac `mac-studio`. Host-specific hardware and identity live under
+`hosts/`; operating-system configuration lives under `modules/nixos/` and
+`modules/darwin/`.
 
 ## Layout
 
@@ -11,11 +12,11 @@ configuration lives under `modules/nixos/` and `modules/darwin/`.
 ├── flake.nix
 ├── flake.lock
 ├── hosts/
-│   ├── mac-studio/
-│   │   └── default.nix
-│   └── nixos/
-│       ├── default.nix
-│       └── hardware-configuration.nix
+│   ├── carbonite/
+│   │   ├── default.nix
+│   │   └── hardware-configuration.nix
+│   └── mac-studio/
+│       └── default.nix
 ├── home/
 │   ├── boboysdadda/
 │   └── jdreier/
@@ -26,7 +27,7 @@ configuration lives under `modules/nixos/` and `modules/darwin/`.
         └── profiles/
 ```
 
-- `hosts/nixos/default.nix` composes this laptop and owns its hostname, users,
+- `hosts/carbonite/default.nix` composes this laptop and owns its hostname, users,
   kernel choice, and `system.stateVersion`.
 - `hardware-configuration.nix` contains generated, machine-specific device
   settings. Regenerate it only when the hardware or disk layout changes.
@@ -46,8 +47,8 @@ From this directory, inspect and build before switching:
 
 ```console
 nix flake check
-sudo nixos-rebuild dry-activate --flake .#nixos
-sudo nixos-rebuild switch --flake .#nixos
+sudo nixos-rebuild dry-activate --flake .#carbonite
+sudo nixos-rebuild switch --flake .#carbonite
 ```
 
 After changing an input, review and commit the lock-file update:
