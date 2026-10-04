@@ -42,6 +42,13 @@ in
 
   system.primaryUser = username;
 
+  # The Studio is reached remotely, and FileVault holds an unattended reboot
+  # at the pre-boot unlock screen, before Tailscale, SSH or RustDesk start. A
+  # macOS update must not reboot it on its own; security responses and XProtect
+  # data still install. Plan reboots with `sudo fdesetup authrestart`.
+  system.defaults.SoftwareUpdate.AutomaticallyInstallMacOSUpdates = false;
+  power.restartAfterPowerFailure = true;
+
   # Used for backwards-compatible defaults; bump only after reading release notes.
   system.stateVersion = 5;
 }

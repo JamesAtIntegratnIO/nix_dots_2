@@ -23,6 +23,15 @@ in
       ProcessType = "Interactive";
     };
   };
+  # Claude Code keeps its login in the login keychain, which SSH sessions cannot
+  # read, so over SSH it reports "Not logged in". A long-lived token from
+  # `claude setup-token` stands in there; it lives outside the Nix store and
+  # Git. GUI sessions keep the keychain login, whose scopes are wider.
+  programs.zsh.initContent = ''
+    if [[ -n "$SSH_CONNECTION" && -r ~/.config/claude-ssh/oauth-token ]]; then
+      export CLAUDE_CODE_OAUTH_TOKEN="$(<~/.config/claude-ssh/oauth-token)"
+    fi
+  '';
   programs.tmux = {
     enable = true;
     baseIndex = 1;
