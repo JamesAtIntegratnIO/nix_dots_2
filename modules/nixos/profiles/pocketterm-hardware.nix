@@ -46,13 +46,6 @@
         enable = true;
         value = 1;
       };
-      # Cap the CPU at 1.8 GHz (stock 2.4). The chassis leaves 2.5 mm above the
-      # board, so cooling is marginal at best: this cuts peak heat and battery
-      # draw for little loss in terminal/desktop use. Remove to restore 2.4 GHz.
-      arm_freq = {
-        enable = true;
-        value = 1800;
-      };
     };
     base-dt-params = {
       # I2C-1 (GPIO2/3) carries the GT911 touch controller.
