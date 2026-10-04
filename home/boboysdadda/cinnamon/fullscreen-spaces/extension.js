@@ -14,6 +14,13 @@ function applicationName(window) {
         window.get_title() || 'Fullscreen';
 }
 
+// Fullscreen or fully maximized. Muffin's half/quarter tiles count as
+// vertically maximized only, so they stay on their workspace.
+function wantsSpace(window) {
+    return window.is_fullscreen() ||
+        window.get_maximized() === Meta.MaximizeFlags.BOTH;
+}
+
 function workspaceExists(workspace) {
     const manager = global.workspace_manager;
     for (let i = 0; i < manager.n_workspaces; i++) {
@@ -58,7 +65,7 @@ function update(window) {
     const record = windows.get(window);
     if (!record)
         return;
-    if (!window.is_fullscreen()) {
+    if (!wantsSpace(window)) {
         restore(window, record);
         return;
     }
@@ -81,7 +88,7 @@ function queueUpdate(window) {
     const record = windows.get(window);
     if (!record || record.updateId)
         return;
-    // Fullscreen notifications precede Muffin's resize and Cinnamon's animation.
+    // Fullscreen and maximize notifications precede Muffin's resize and Cinnamon's animation.
     // Switching workspaces during that animation can restore stale actor positions.
     const id = Mainloop.timeout_add(30, () => {
         const actor = window.get_compositor_private();
@@ -102,7 +109,8 @@ function watch(window) {
         return;
     const record = { origin: null, space: null, signals: [], updateId: 0 };
     windows.set(window, record);
-    record.signals.push(window.connect('notify::fullscreen', () => queueUpdate(window)));
+    for (const property of ['fullscreen', 'maximized-horizontally', 'maximized-vertically'])
+        record.signals.push(window.connect(`notify::${property}`, () => queueUpdate(window)));
     record.signals.push(window.connect('unmanaged', () => {
         if (record.updateId) {
             Mainloop.source_remove(record.updateId);
