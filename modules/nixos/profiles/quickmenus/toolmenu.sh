@@ -1,10 +1,12 @@
 # Field-tools launcher (Super+T): the pentest/network tools from
-# ../pentest.nix, each opened in a foot terminal. Keep in sync with it.
+# ../pentest.nix, each opened in a foot terminal (GUI ones directly). Keep in
+# sync with it.
 # shellcheck source=/dev/null
 source "$QUICKMENU_COMMON"
 
 # glyph|label|hint|command (run via foot; the command keeps the window open)
 tools=(
+  "$G_LINK|portscout|ethernet port dashboard|portscout-ui"
   "$G_WIFI|Pineapple web UI|172.16.52.1:1471|firefox http://172.16.52.1:1471"
   "$G_SEARCH|nmap|ping-sweep the Pager subnet|nmap -sn 172.16.52.0/24"
   "$G_SEARCH|arp-scan|local network|sudo arp-scan --localnet"
@@ -29,6 +31,6 @@ i=$(printf '%s\n' "${rows[@]}" | menu tools) || exit 0
 IFS='|' read -r _ label _ cmd <<<"${tools[$i]}"
 
 case "$cmd" in
-  firefox*) read -ra argv <<<"$cmd"; exec "${argv[@]}" ;;
+  firefox* | portscout-ui) read -ra argv <<<"$cmd"; exec "${argv[@]}" ;;
   *) exec foot -a toolrun -T "$label" sh -c "$cmd; echo; read -rp '[enter to close] ' _" ;;
 esac

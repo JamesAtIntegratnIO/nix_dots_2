@@ -20,6 +20,7 @@ Sway + Waybar + rofi. No gaps or borders (every pixel counts on 640x480).
 | `Super+Shift+1..4` | Move window to workspace 1–4 |
 | `Super+Left` / `Super+Right` | Prev / next workspace |
 | `Super+w` / `Super+b` / `Super+v` / `Super+t` | Wi-Fi / Bluetooth / volume / tools menu |
+| `Super+n` | portscout: Ethernet port dashboard |
 | `Super+minus` / `Super+equal` / `Super+0` | Dim / brighten / reset overlay |
 
 ## Gestures (swipe from a screen edge)

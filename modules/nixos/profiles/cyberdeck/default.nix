@@ -275,6 +275,10 @@ let
     max-icon-size=32
     default-timeout=5000
     format=<b><span foreground="#${p.cyan}">%s</span></b>\n%b
+    # A tap runs the notification's default action, if it has one, and then
+    # dismisses it (the stock binding only dismisses). portscout's plug-in
+    # notification opens its dashboard this way.
+    on-touch=invoke-default-action
 
     [urgency=low]
     border-color=#${p.overlay}

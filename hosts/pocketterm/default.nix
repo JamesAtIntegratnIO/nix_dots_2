@@ -25,6 +25,7 @@ in
     ../../modules/nixos/profiles/quickmenus
     ../../modules/nixos/profiles/wiki
     ../../modules/nixos/profiles/pentest.nix
+    ../../modules/nixos/profiles/portscout
     ../../modules/nixos/profiles/security-keys.nix
     ../../modules/nixos/profiles/power.nix
     ../../modules/nixos/profiles/emulation.nix
