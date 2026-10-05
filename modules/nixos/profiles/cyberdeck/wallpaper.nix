@@ -12,7 +12,8 @@
   width ? 640,
   height ? 480,
   title ? "POCKETTERM",
-  # The middle of the prompt line: "❯ nixos // <tags> // <hostname>".
+  os ? "nixos", # first word of the prompt line
+  # The middle of the prompt line: "❯ <os> // <tags> // <hostname>".
   tags ? [
     "aarch64"
     "rpi5"
@@ -58,7 +59,7 @@ let
   # Prompt line under the wordmark; the block cursor sits right after it
   # (JetBrains Mono advances 0.6em, so 7.8px per char at 13px; "❯" is 3
   # bytes but one glyph, hence the -2).
-  promptParts = [ "nixos" ] ++ tags ++ [ hostname ];
+  promptParts = [ os ] ++ tags ++ [ hostname ];
   prompt = "❯ ${builtins.concatStringsSep " // " promptParts}";
   promptSvg = builtins.concatStringsSep " <tspan fill=\"#${p.overlay}\">//</tspan> " promptParts;
   cursorX = 58 + (builtins.stringLength prompt - 2) * 7.8 + 4;

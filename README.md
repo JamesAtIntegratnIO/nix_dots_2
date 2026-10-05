@@ -175,6 +175,22 @@ nix eval --raw .#darwinConfigurations.mac-studio.system.drvPath
 Update the LM Studio pin with `bash scripts/update-lmstudio.sh`; the script
 edits `modules/darwin/overlays.nix` relative to its own location.
 
+### Cyberdeck look
+
+The Mac shares the palette in `modules/nixos/profiles/cyberdeck/palette.nix`
+with the PocketTerm and the laptop. `modules/darwin/cyberdeck.nix` installs
+JetBrainsMono Nerd Font and sets dark mode, the text highlight color and the
+lock-screen message. `modules/darwin/home/cyberdeck` renders the wallpaper at
+3840x2160, writes a `Cyberdeck` profile into Terminal.app and makes it the
+default, and themes the zsh prompt, tmux, fzf, bat, delta, btop and man pages
+through the terminal's 16 ANSI colors.
+
+macOS limits: the accent color is a fixed list with no cyan, so it stays at
+the default. The wallpaper is applied to the Space showing on each display;
+other existing Spaces keep theirs until changed in System Settings. Quit and
+reopen Terminal to load the new profile, and run `tmux source-file
+~/.config/tmux/tmux.conf` in sessions that were already running.
+
 ## Tailscale
 
 Both hosts enable Tailscale through Nix: systemd on NixOS and a system launchd

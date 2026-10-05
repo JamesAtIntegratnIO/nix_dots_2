@@ -10,6 +10,7 @@ let
 in
 {
   imports = [
+    ./cyberdeck.nix
     ./local-ai.nix
     ./docker.nix
     ./github-runner.nix

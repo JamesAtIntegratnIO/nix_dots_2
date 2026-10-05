@@ -1,10 +1,14 @@
-{ pkgs, username, lib, inputs, ... }:
+{ pkgs, username, lib, inputs, osConfig, ... }:
 let
   homePackages = import ./packages.nix { inherit pkgs; };
   opencodeModule = import ./opencode/default.nix { inherit pkgs username lib inputs; };
   hermesModule = import ./hermes/default.nix { inherit pkgs username lib inputs; };
   remoteDevModule = import ./remote-dev.nix { inherit pkgs lib; };
   taildropModule = import ./taildrop.nix { inherit pkgs lib username; };
+  cyberdeckModule = import ./cyberdeck {
+    inherit pkgs lib;
+    hostname = osConfig.networking.hostName;
+  };
 in
 lib.mkMerge [
   {
@@ -70,4 +74,5 @@ lib.mkMerge [
   hermesModule
   remoteDevModule
   taildropModule
+  cyberdeckModule
 ]
