@@ -14,6 +14,9 @@ let
   themeName = "Cyberdeck"; # Cinnamon shell + GTK, one directory
   iconTheme = "Papirus-Dark";
   wallpaper = osConfig.services.xserver.displayManager.lightdm.background;
+  # Every wallpaper style, as a directory. The store path rather than /etc, so
+  # new renders change the setting and Cinnamon reloads them.
+  wallpapers = osConfig.environment.etc."cyberdeck/wallpapers".source;
   host = osConfig.networking.hostName;
 
   # GTK3 apps get the palette from the theme itself; libadwaita (GTK4) apps
@@ -76,6 +79,14 @@ in
     "org/cinnamon/desktop/background" = {
       picture-uri = "file://${wallpaper}";
       picture-options = "zoom";
+    };
+    # Cinnamon's own slideshow, in filename order; picture-uri above is what
+    # shows until it first runs.
+    "org/cinnamon/desktop/background/slideshow" = {
+      slideshow-enabled = true;
+      image-source = "directory://${wallpapers}";
+      delay = 30; # minutes
+      random-order = false;
     };
 
     # Lock screen: it draws over the desktop background, and its colors come

@@ -180,10 +180,18 @@ edits `modules/darwin/overlays.nix` relative to its own location.
 The Mac shares the palette in `modules/nixos/profiles/cyberdeck/palette.nix`
 with the PocketTerm and the laptop. `modules/darwin/cyberdeck.nix` installs
 JetBrainsMono Nerd Font and sets dark mode, the text highlight color and the
-lock-screen message. `modules/darwin/home/cyberdeck` renders the wallpaper at
+lock-screen message. `modules/darwin/home/cyberdeck` renders the wallpapers at
 3840x2160, writes a `Cyberdeck` profile into Terminal.app and makes it the
 default, and themes the zsh prompt, tmux, fzf, bat, delta, btop and man pages
 through the terminal's 16 ANSI colors.
+
+The wallpaper comes in six styles (`grid`, `ridgeline`, `traces`, `sweep`,
+`hexdump`, `skyline`), all drawn by
+`modules/nixos/profiles/cyberdeck/wallpaper.nix` from its `style` argument.
+The Mac and the laptop render all six and move to the next every 30 minutes:
+a launchd agent on the Mac, Cinnamon's slideshow on the laptop. The PocketTerm
+keeps the single `grid` render, as do the laptop's login screen and boot
+splash.
 
 macOS limits: the accent color is a fixed list with no cyan, so it stays at
 the default. The wallpaper is applied to the Space showing on each display;

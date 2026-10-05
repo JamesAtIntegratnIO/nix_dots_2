@@ -4,6 +4,10 @@
 # 16:10) and rasterized at the real resolution, so the laptop gets a native
 # render instead of a stretched 640x480. On the PocketTerm the top 24px sit
 # under Waybar, so nothing important is drawn there.
+#
+# `style` picks what is drawn behind the wordmark: the horizon grid here, or
+# one of the scenes in ./wallpaper-scenes.nix. ./wallpapers.nix renders them
+# all for hosts that rotate.
 {
   pkgs,
   palette,
@@ -23,6 +27,8 @@
   # Top-right status label; the boot splash swaps it for "BOOTING".
   statusText ? "● SYS ONLINE",
   statusColor ? palette.green,
+  style ? "grid", # or ridgeline, traces, sweep, hexdump, skyline
+  peers ? [ ], # other hosts, shown as contacts in the sweep style
 }:
 
 let
@@ -69,6 +75,47 @@ let
     <path d="M ${toString x} ${toString (y + dy * 14)} L ${toString x} ${toString y} L ${toString (x + dx * 14)} ${toString y}"/>
   '';
 
+  # The original scene: dot field above a perspective floor. Indented as it
+  # lands in the svg below, so the render stays byte-identical.
+  grid = ''
+    <rect width="${toString vw}" height="${toString horizon}" fill="url(#dots)" mask="url(#dotMask)"/>
+
+      <ellipse cx="${toString (center + 80)}" cy="${toString horizon}" rx="300" ry="70" fill="url(#haze)"/>
+
+      <!-- perspective floor -->
+      <g mask="url(#floorMask)" stroke="#${p.cyan}" stroke-opacity="0.45" stroke-width="1">
+        ${floorLines}
+        ${rays}
+      </g>
+
+      <!-- horizon -->
+      <rect x="0" y="${toString (horizon - 2)}" width="${toString vw}" height="4" fill="url(#horizonLine)" filter="url(#softGlow)" opacity="0.9"/>
+      <rect x="0" y="${toString horizon}" width="${toString vw}" height="1" fill="url(#horizonLine)"/>
+  '';
+
+  scene =
+    if style == "grid" then
+      {
+        body = grid;
+        defs = "";
+        dy = 0;
+      }
+    else
+      (import ./wallpaper-scenes.nix {
+        inherit (pkgs) lib;
+        inherit
+          palette
+          font
+          vw
+          hostname
+          tags
+          peers
+          horizon
+          floorLines
+          ;
+      }).${style};
+  wy = y: toString (y + scene.dy); # the wordmark block, moved to clear the scene
+
   svg = pkgs.writeText "pocketterm-wall.svg" ''
     <svg xmlns="http://www.w3.org/2000/svg" width="${toString width}" height="${toString height}" viewBox="0 0 ${toString vw} 480">
       <defs>
@@ -113,33 +160,20 @@ let
         </filter>
         <filter id="softGlow" x="-10%" y="-400%" width="120%" height="900%">
           <feGaussianBlur stdDeviation="3"/>
-        </filter>
+        </filter>${scene.defs}
       </defs>
 
       <rect width="${toString vw}" height="480" fill="url(#bg)"/>
-      <rect width="${toString vw}" height="${toString horizon}" fill="url(#dots)" mask="url(#dotMask)"/>
-
-      <ellipse cx="${toString (center + 80)}" cy="${toString horizon}" rx="300" ry="70" fill="url(#haze)"/>
-
-      <!-- perspective floor -->
-      <g mask="url(#floorMask)" stroke="#${p.cyan}" stroke-opacity="0.45" stroke-width="1">
-        ${floorLines}
-        ${rays}
-      </g>
-
-      <!-- horizon -->
-      <rect x="0" y="${toString (horizon - 2)}" width="${toString vw}" height="4" fill="url(#horizonLine)" filter="url(#softGlow)" opacity="0.9"/>
-      <rect x="0" y="${toString horizon}" width="${toString vw}" height="1" fill="url(#horizonLine)"/>
-
+      ${scene.body}
       <!-- wordmark -->
-      <rect x="40" y="170" width="3" height="58" fill="#${p.cyan}"/>
-      <text x="56" y="214" font-family="${font}" font-weight="800" font-size="46" letter-spacing="3"
+      <rect x="40" y="${wy 170}" width="3" height="58" fill="#${p.cyan}"/>
+      <text x="56" y="${wy 214}" font-family="${font}" font-weight="800" font-size="46" letter-spacing="3"
             fill="#${p.cyan}" opacity="0.75" filter="url(#glow)">${title}</text>
-      <text x="56" y="214" font-family="${font}" font-weight="800" font-size="46" letter-spacing="3"
+      <text x="56" y="${wy 214}" font-family="${font}" font-weight="800" font-size="46" letter-spacing="3"
             fill="#${p.bright}">${title}</text>
-      <text x="58" y="244" font-family="${font}" font-size="13" fill="#${p.subtext}">
+      <text x="58" y="${wy 244}" font-family="${font}" font-size="13" fill="#${p.subtext}">
         <tspan fill="#${p.green}">❯</tspan> ${promptSvg}</text>
-      <rect x="${toString cursorX}" y="233" width="8" height="14" fill="#${p.magenta}"/>
+      <rect x="${toString cursorX}" y="${wy 233}" width="8" height="14" fill="#${p.magenta}"/>
 
       <!-- HUD furniture -->
       <g stroke="#${p.cyan}" stroke-opacity="0.6" stroke-width="1.5" fill="none">

@@ -16,8 +16,10 @@ let
   p = import ../../../nixos/profiles/cyberdeck/palette.nix;
   monoFont = "JetBrainsMono Nerd Font";
 
-  # Native render for the 4K display, labelled with the hostname.
-  wallpaper = import ../../../nixos/profiles/cyberdeck/wallpaper.nix {
+  # Native renders for the 4K display, labelled with the hostname: one per
+  # wallpaper style, shown in turn.
+  wallpaperMinutes = 30;
+  wallpapers = import ../../../nixos/profiles/cyberdeck/wallpapers.nix {
     inherit pkgs hostname;
     palette = p;
     name = "${hostname}-wallpaper";
@@ -31,6 +33,10 @@ let
     ];
     footer = "3840×2160 · ARM64 · AQUA";
     node = "0x02";
+    peers = [
+      "pocketterm"
+      "carbonite"
+    ];
   };
 
   # Terminal.app keeps its profiles as archived NSColor/NSFont objects, so the
@@ -58,8 +64,10 @@ in
   '';
 
   # A launchd agent rather than an activation step: setting the wallpaper needs
-  # the GUI session, which an SSH-driven rebuild may not have. The store path
-  # is in the arguments, so a new render reloads the agent and applies itself.
+  # the GUI session, which an SSH-driven rebuild may not have. It runs every
+  # wallpaperMinutes and the script picks the style from the clock. The store
+  # paths are in the arguments, so new renders reload the agent and apply
+  # themselves.
   launchd.agents.cyberdeck-wallpaper = {
     enable = true;
     config = {
@@ -68,8 +76,10 @@ in
         "-l"
         "JavaScript"
         "${./wallpaper.js}"
-        "${wallpaper}"
-      ];
+        (toString (wallpaperMinutes * 60))
+      ]
+      ++ map toString wallpapers.images;
+      StartInterval = wallpaperMinutes * 60;
       RunAtLoad = true;
       ProcessType = "Background";
     };
