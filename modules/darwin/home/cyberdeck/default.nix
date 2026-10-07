@@ -2,10 +2,10 @@
 # modules/nixos/profiles/cyberdeck, on the parts of macOS that can take them.
 # The font and system defaults are in ../../cyberdeck.nix.
 #
-# As on the PocketTerm, the terminal tools draw with the 16 ANSI slots and the
-# terminal maps those to the palette, so nothing below hardcodes hex and a
-# session opened from the laptop's (already themed) terminal looks the same as
-# one opened in Terminal.app here.
+# This file is the part only macOS has: the wallpaper, the screen saver and
+# Terminal.app's profile. Terminal maps the 16 ANSI slots to the palette, and
+# the shared tools in ../../../home/cyberdeck.nix draw with those slots, so a
+# session opened from the laptop's terminal looks the same as one opened here.
 {
   pkgs,
   lib,
@@ -85,104 +85,46 @@ let
     }
   );
 in
-{
-  home.activation.cyberdeckTerminal = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    run /usr/bin/osascript -l JavaScript ${./terminal-profile.js} ${terminalProfile}
-  '';
-
-  home.activation.cyberdeckScreensaver = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    run /usr/bin/osascript -l JavaScript ${./screensaver.js} ${screensaver}
-  '';
-
-  # A launchd agent rather than an activation step: setting the wallpaper needs
-  # the GUI session, which an SSH-driven rebuild may not have. It runs every
-  # wallpaperMinutes and the script picks the style from the clock. The store
-  # paths are in the arguments, so new renders reload the agent and apply
-  # themselves.
-  launchd.agents.cyberdeck-wallpaper = {
-    enable = true;
-    config = {
-      ProgramArguments = [
-        "/usr/bin/osascript"
-        "-l"
-        "JavaScript"
-        "${./wallpaper.js}"
-        (toString (wallpaperMinutes * 60))
-      ]
-      ++ map toString wallpapers.images;
-      StartInterval = wallpaperMinutes * 60;
-      RunAtLoad = true;
-      ProcessType = "Background";
-    };
-  };
-
-  programs.zsh = {
-    autosuggestion.enable = true;
-    syntaxHighlighting.enable = true;
-    initContent = builtins.readFile ./prompt.zsh;
-  };
-
-  # fzf: Ctrl-R history, Ctrl-T files, Alt-C dirs; compact, no box.
-  programs.fzf = {
-    enable = true;
-    enableZshIntegration = true;
-    defaultOptions = [
-      "--height=60% --layout=reverse --info=inline-right --no-scrollbar"
-      "--prompt='❯ ' --pointer='▌' --marker='+'"
-      "--color=fg:7,bg:-1,hl:6,fg+:15,bg+:0,hl+:14"
-      "--color=info:8,prompt:2,pointer:6,marker:5,spinner:5,header:4,border:8,gutter:-1"
-    ];
-  };
-
-  programs.bat = {
-    enable = true;
-    config = {
-      theme = "ansi";
-      style = "numbers,changes";
-    };
-  };
-
-  programs.delta = {
-    enable = true;
-    enableGitIntegration = true;
-    options = {
-      syntax-theme = "ansi";
-      navigate = true;
-      line-numbers = true;
-    };
-  };
-  programs.git.settings.merge.conflictStyle = "zdiff3";
-
-  programs.btop = {
-    enable = true;
-    settings = {
-      color_theme = "TTY";
-      theme_background = false;
-      truecolor = false;
-      rounded_corners = false;
-      vim_keys = true;
-    };
-  };
-
-  # man pages through less with color: bold -> cyan, underline -> magenta.
-  home.sessionVariables.MANPAGER = "less -R --use-color -Dd+c -Du+m";
-
-  # One-line status bar in the palette, as on the deck.
-  programs.tmux = {
-    terminal = "tmux-256color";
-    extraConfig = ''
-      set -as terminal-features ",xterm-256color:RGB"
-      set -g status-position bottom
-      set -g status-style "bg=default,fg=colour8"
-      set -g status-left "#[fg=colour0,bg=colour6,bold] #S #[default] "
-      set -g status-left-length 20
-      set -g status-right "#[fg=colour8]#h #[fg=colour3]%H:%M"
-      set -g window-status-format "#[fg=colour8] #I:#W "
-      set -g window-status-current-format "#[fg=colour6,bold] #I:#W "
-      set -g pane-border-style "fg=colour0"
-      set -g pane-active-border-style "fg=colour6"
-      set -g message-style "fg=colour2,bg=default"
-      set -g mode-style "fg=colour0,bg=colour6"
+lib.mkMerge [
+  # The prompt, CLI tools, file-listing colors and editor themes, shared with
+  # the laptop.
+  (import ../../../home/cyberdeck.nix { inherit pkgs lib; })
+  {
+    home.activation.cyberdeckTerminal = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      run /usr/bin/osascript -l JavaScript ${./terminal-profile.js} ${terminalProfile}
     '';
-  };
-}
+
+    home.activation.cyberdeckScreensaver = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      run /usr/bin/osascript -l JavaScript ${./screensaver.js} ${screensaver}
+    '';
+
+    # A launchd agent rather than an activation step: setting the wallpaper needs
+    # the GUI session, which an SSH-driven rebuild may not have. It runs every
+    # wallpaperMinutes and the script picks the style from the clock. The store
+    # paths are in the arguments, so new renders reload the agent and apply
+    # themselves.
+    launchd.agents.cyberdeck-wallpaper = {
+      enable = true;
+      config = {
+        ProgramArguments = [
+          "/usr/bin/osascript"
+          "-l"
+          "JavaScript"
+          "${./wallpaper.js}"
+          (toString (wallpaperMinutes * 60))
+        ]
+        ++ map toString wallpapers.images;
+        StartInterval = wallpaperMinutes * 60;
+        RunAtLoad = true;
+        ProcessType = "Background";
+      };
+    };
+
+    programs.zsh = {
+      autosuggestion.enable = true;
+      syntaxHighlighting.enable = true;
+    };
+    programs.fzf.enableZshIntegration = true;
+    programs.starship.enableZshIntegration = true;
+  }
+]

@@ -2,15 +2,9 @@
 
 {
   programs = {
-    fzf = {
-      enable = true;
-      enableZshIntegration = true;
-    };
-
-    starship = {
-      enable = true;
-      enableZshIntegration = true;
-    };
+    # Both are enabled, and given their look, in modules/home/cyberdeck.nix.
+    fzf.enableZshIntegration = true;
+    starship.enableZshIntegration = true;
 
     tmux = {
       enable = true;

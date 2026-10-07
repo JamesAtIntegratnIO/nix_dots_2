@@ -437,9 +437,6 @@ in
     "--cmd sway"
   ];
 
-  # Single-line neon prompt for every interactive bash.
-  programs.bash.promptInit = builtins.readFile ./prompt.bash;
-
   # Boot splash on vc4 (loaded in the initrd below, up at ~1.5s).
   boot.plymouth = {
     enable = true;

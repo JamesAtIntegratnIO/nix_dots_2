@@ -1,10 +1,13 @@
 # Terminal apps in the cyberdeck look. Everything here draws with the 16 ANSI
-# slots (bat's "ansi" theme, btop's "TTY" theme, fzf/tmux color numbers), and
+# slots (bat's "ansi" theme, btop's "TTY" theme, fzf/tmux/ls color numbers), and
 # foot maps those slots to ./palette.nix -- so the palette stays the single
 # source of truth and nothing here hardcodes hex.
 { pkgs, ... }:
 
 let
+  # Shared with the Mac and the laptop (../../../home/cyberdeck.nix).
+  cli = import ./cli.nix;
+
   # btop rewrites its config on exit, so it can't be a read-only store
   # symlink; tmpfiles seeds this copy once and leaves later edits alone.
   # Processes only: any layout with the cpu box needs 24 rows and foot at
@@ -25,6 +28,8 @@ in
     btop
     bat
     delta
+    eza
+    neovim
     ripgrep
     fd
   ];
@@ -44,12 +49,7 @@ in
     keybindings = true;
     fuzzyCompletion = true;
   };
-  environment.variables.FZF_DEFAULT_OPTS = builtins.concatStringsSep " " [
-    "--height=60% --layout=reverse --info=inline-right --no-scrollbar"
-    "--prompt='❯ ' --pointer='▌' --marker='+'"
-    "--color=fg:7,bg:-1,hl:6,fg+:15,bg+:0,hl+:14"
-    "--color=info:8,prompt:2,pointer:6,marker:5,spinner:5,header:4,border:8,gutter:-1"
-  ];
+  environment.variables.FZF_DEFAULT_OPTS = builtins.concatStringsSep " " cli.fzfOptions;
 
   # git: delta as pager, ANSI theme, no side-by-side (72 columns).
   programs.git = {
@@ -66,9 +66,27 @@ in
     };
   };
 
-  # man pages through less with color: bold -> cyan, underline -> magenta.
-  environment.variables.MANPAGER = "less -R --use-color -Dd+c -Du+m";
+  environment.variables.MANPAGER = cli.manpager;
   environment.variables.MANROFFOPT = "-P -c";
+
+  # File listings in the palette, for ls and eza.
+  environment.variables.LS_COLORS = cli.lsColors;
+  environment.variables.EZA_COLORS = cli.ezaColors;
+  environment.shellAliases.ll = "eza -la";
+
+  # One prompt for every interactive shell, one line to save vertical space
+  # on the 640x480 panel.
+  programs.starship = {
+    enable = true;
+    settings = cli.starship;
+  };
+
+  # Neovim reads /etc/xdg/nvim as part of its runtime path: the scheme by
+  # name, and the plugin file, sourced at startup, selects it.
+  environment.etc."xdg/nvim/colors/cyberdeck.lua".text = import ./nvim.nix (import ./palette.nix);
+  environment.etc."xdg/nvim/plugin/cyberdeck.lua".text = ''
+    vim.cmd.colorscheme("cyberdeck")
+  '';
 
   # tmux: one-line status bar at the bottom in the palette; mouse on so the
   # touchscreen can pick panes and scroll.
@@ -79,17 +97,7 @@ in
     terminal = "tmux-256color";
     extraConfig = ''
       set -g mouse on
-      set -g status-position bottom
-      set -g status-style "bg=default,fg=colour8"
-      set -g status-left "#[fg=colour0,bg=colour6,bold] #S #[default] "
-      set -g status-left-length 20
-      set -g status-right "#[fg=colour3]%H:%M"
-      set -g window-status-format "#[fg=colour8] #I:#W "
-      set -g window-status-current-format "#[fg=colour6,bold] #I:#W "
-      set -g pane-border-style "fg=colour0"
-      set -g pane-active-border-style "fg=colour6"
-      set -g message-style "fg=colour2,bg=default"
-      set -g mode-style "fg=colour0,bg=colour6"
-    '';
+    ''
+    + cli.tmuxLook "";
   };
 }
