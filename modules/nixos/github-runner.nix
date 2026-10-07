@@ -43,6 +43,30 @@ let
   # re-registers every instance: run scripts/register-runner-nixos.sh after.
   workRoot = "/var/lib/github-runner-work";
 
+  # Each runner service has PrivateTmp, so a job's /tmp is a directory of its
+  # own under the host's /tmp that lasts as long as the service does, and the
+  # services run for weeks. `nix develop -c` leaves a nix-shell.XXXXXX there on
+  # every job, with whatever the gate wrote under TMPDIR, and the tests leave
+  # their own. The same leak filled the Mac's disk on 2026-10-07 (the darwin
+  # tmp-sweep module); here it is slower only because a rebuild that restarts
+  # the runners empties it.
+  #
+  # No job lasts longer than 90 minutes, so anything at the top of a runner's
+  # /tmp that has sat for six hours belongs to a job that is over.
+  tmpSweep = pkgs.writeShellScript "runner-tmp-sweep" ''
+    set -u
+    export PATH=${lib.makeBinPath [ pkgs.coreutils pkgs.findutils ]}
+    echo "=== runner tmp sweep $(date -u +%FT%TZ)"
+    df -h /tmp | tail -1
+    for private in /tmp/systemd-private-*-github-runner-*/tmp; do
+      [ -d "$private" ] || continue
+      count=$(find "$private" -mindepth 1 -maxdepth 1 -mmin +360 -print | wc -l)
+      find "$private" -mindepth 1 -maxdepth 1 -mmin +360 -exec rm -rf -- {} +
+      echo "$count removed from $private"
+    done
+    df -h /tmp | tail -1
+  '';
+
   runner = instance: repo: {
     name = instance;
     value = {
@@ -87,9 +111,43 @@ in
     ];
   };
 
+  # The module's default prune is a weekly `docker system prune -f`, which
+  # removes only dangling images and leaves every per-commit tag CI loads and
+  # all the build cache that is not dangling: 773 images and 48 GB of cache on
+  # 2026-10-07, 66 GB of a 125 GB disk. Daily, and everything unused for three
+  # days, the same window the Mac's prune keeps (modules/darwin/docker.nix).
   virtualisation.docker = {
     enable = true;
-    autoPrune.enable = true;
+    autoPrune = {
+      enable = true;
+      dates = "daily";
+      flags = [
+        "--all"
+        "--filter"
+        "until=72h"
+      ];
+    };
+  };
+
+  # Three days of cache from eight runners is still most of the disk, so the
+  # cache is also held to a size. --reserved-space is docker 29's name for the
+  # old --keep-storage.
+  systemd.services.docker-prune.serviceConfig.ExecStartPost =
+    "${pkgs.docker}/bin/docker builder prune -f --reserved-space 10GB";
+
+  systemd.services.runner-tmp-sweep = {
+    description = "Remove what finished jobs left in the runners' private /tmp";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = tmpSweep;
+    };
+  };
+  systemd.timers.runner-tmp-sweep = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "hourly";
+      Persistent = true;
+    };
   };
 
   users.groups.${runnerUser} = { };
