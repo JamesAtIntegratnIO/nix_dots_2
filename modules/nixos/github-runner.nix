@@ -88,6 +88,11 @@ let
       workDir = "${workRoot}/${instance}";
       user = runnerUser;
       group = runnerUser;
+      # What a job's steps reach for outside a dev shell. The first six are what
+      # the image jobs need. jq, perl (for shasum) and gh came with the jobs
+      # that moved here from the Mac, where Homebrew and the system supplied
+      # them: the workflows are written once and run on either host, so this
+      # host carries the tools rather than each workflow working around them.
       extraPackages = with pkgs; [
         docker
         docker-buildx
@@ -95,6 +100,9 @@ let
         gnutar
         gzip
         curl
+        jq
+        perl
+        gh
       ];
       # One docker config per instance, so concurrent jobs don't share buildx
       # state or registry logins. See the darwin module for the failure this
@@ -117,6 +125,34 @@ in
       stdenv.cc.cc.lib
       zlib
       openssl
+
+      # What the Chromium that Playwright downloads links against. The
+      # verification gates run their Storybook stories in it, and on this host
+      # it starts through nix-ld like any other generic binary; without these
+      # it dies on libglib-2.0.so.0 before it opens a page.
+      glib
+      nspr
+      nss
+      atk
+      at-spi2-atk
+      at-spi2-core
+      dbus
+      expat
+      cups
+      pango
+      cairo
+      libdrm
+      libgbm
+      libxkbcommon
+      alsa-lib
+      systemd
+      xorg.libX11
+      xorg.libXcomposite
+      xorg.libXdamage
+      xorg.libXext
+      xorg.libXfixes
+      xorg.libXrandr
+      xorg.libxcb
     ];
   };
 
