@@ -10,13 +10,15 @@ let
   # so their state directories stay put. runwright is a personal-account
   # repository and cannot be served by an org runner, so it keeps its own.
   #
-  # specmarshal has eight rather than the darwin module's four. This host is
-  # x86_64, so it takes the image matrix's amd64 leg natively instead of the
-  # Mac's Rosetta emulation, and that leg fans out to five builds: four
-  # instances leave the fifth queueing behind the others. Eight covers one
-  # wave with room for a second pull request's, and matches the VM's eight
-  # vCPU against its 24G of memory.
-  specmarshalInstances = 8;
+  # specmarshal has five, by number so the ones that stay keep their names,
+  # their state directories and their registrations. There were eight, one per
+  # vCPU when the VM had eight, so a pull request's five amd64 image builds ran
+  # as one wave. That stopped working once the verification gates moved here:
+  # a gate beside a wave of builds ran eighteen minutes instead of eight and
+  # timed its slowest tests out (2026-10-07, with twelve vCPU and 32G). Five
+  # instances cap what runs at once: at worst both gate instances and three
+  # builds, and the rest of a wave queues behind them.
+  specmarshalInstanceNumbers = [ 1 2 3 7 8 ];
 
   # The verification gates of the core, pro and the registry run here rather
   # than on the Mac, which also runs the service and its sandboxes and timed
@@ -35,7 +37,7 @@ let
         name = if n == 1 then "specmarshal" else "specmarshal-${toString n}";
         value = "IntegratnIO";
       })
-      (lib.range 1 specmarshalInstances)
+      specmarshalInstanceNumbers
   );
 
   # The registration token each instance consumes on first start. It expires
