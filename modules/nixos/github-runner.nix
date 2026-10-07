@@ -108,6 +108,25 @@ let
       # state or registry logins. See the darwin module for the failure this
       # avoids.
       extraEnvironment.DOCKER_CONFIG = "/var/lib/github-runner/${instance}/.docker";
+      # The module's system-call filter refuses capset, and the kernel kills
+      # what calls it. Chromium's page processes call it to drop what they
+      # hold, so every page the gates' stories opened died at once ("Target
+      # crashed"; the kernel's audit line names syscall 126 from
+      # chrome-headless-shell). This is the module's filter with that one
+      # entry taken out. The service has no capabilities to raise
+      # (CapabilityBoundingSet is empty and NoNewPrivileges is set), so
+      # capset can only ever lower them.
+      serviceOverrides.SystemCallFilter = lib.mkForce [
+        "~@clock"
+        "~@cpu-emulation"
+        "~@module"
+        "~@mount"
+        "~@obsolete"
+        "~@raw-io"
+        "~@reboot"
+        "~setdomainname"
+        "~sethostname"
+      ];
     };
   };
 in
