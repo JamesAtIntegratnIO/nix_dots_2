@@ -18,6 +18,15 @@ let
   # vCPU against its 24G of memory.
   specmarshalInstances = 8;
 
+  # The verification gates of the core, pro and the registry run here rather
+  # than on the Mac, which also runs the service and its sandboxes and timed
+  # the gates' tests out under that load. A gate fills the machine by itself,
+  # so only these instances carry the `gate` label the gate jobs ask for, and
+  # GitHub queues a third gate behind them rather than starting it beside them
+  # (a workflow concurrency group cannot do this: it cancels what is waiting).
+  # They still take any other Linux job when no gate is waiting.
+  gateInstances = [ "specmarshal-7" "specmarshal-8" ];
+
   instances = {
     runwright = "JamesAtIntegratnIO/runwright";
   } // builtins.listToAttrs (
@@ -74,7 +83,7 @@ let
       url = "https://github.com/${repo}";
       name = "ghrunner-${instance}";
       tokenFile = "${tokenDir}/${instance}";
-      extraLabels = [ "nix" ];
+      extraLabels = [ "nix" ] ++ lib.optional (builtins.elem instance gateInstances) "gate";
       replace = true;
       workDir = "${workRoot}/${instance}";
       user = runnerUser;
