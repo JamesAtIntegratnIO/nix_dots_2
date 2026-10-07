@@ -4,6 +4,9 @@
   ...
 }:
 
+let
+  sshKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIESq1wdY7diOloASvawJgjjThP6kzDWC/J3NIzZu5QVe james@integratn.io";
+in
 {
   imports = [
     inputs.nixos-hardware.nixosModules.lenovo-thinkpad-x1-9th-gen
@@ -30,6 +33,23 @@
       "wheel"
     ];
   };
+
+  # SSH for remote rebuilds from the Mac, key-only. The laptop roams onto
+  # networks it does not control, so the port is opened on the tailnet
+  # interface alone and stays closed on Wi-Fi and Ethernet. root takes the
+  # key because a rebuild needs it and sudo here asks for a password.
+  services.openssh = {
+    enable = true;
+    openFirewall = false;
+    settings = {
+      PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
+      PermitRootLogin = "prohibit-password";
+    };
+  };
+  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 22 ];
+  users.users.root.openssh.authorizedKeys.keys = [ sshKey ];
+  users.users.boboysdadda.openssh.authorizedKeys.keys = [ sshKey ];
 
   home-manager = {
     useGlobalPkgs = true;
