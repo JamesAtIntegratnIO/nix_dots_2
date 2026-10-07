@@ -39,6 +39,33 @@ let
     ];
   };
 
+  # The screen saver is the same renders in a .saver bundle, which
+  # ./screensaver.js installs and selects.
+  screensaver = pkgs.stdenv.mkDerivation {
+    name = "Cyberdeck.saver";
+    dontUnpack = true;
+    infoPlist = pkgs.writeText "Info.plist" (
+      lib.generators.toPlist { escape = true; } {
+        CFBundleExecutable = "Cyberdeck";
+        CFBundleIdentifier = "io.integratn.cyberdeck-saver";
+        CFBundleName = "Cyberdeck";
+        CFBundlePackageType = "BNDL";
+        CFBundleShortVersionString = "1.0";
+        CFBundleVersion = "1";
+        NSPrincipalClass = "CyberdeckView";
+      }
+    );
+    buildPhase = ''
+      mkdir -p $out/Contents/MacOS
+      $CC -fobjc-arc -bundle -O2 ${./screensaver.m} -o $out/Contents/MacOS/Cyberdeck \
+        -framework ScreenSaver -framework QuartzCore -framework Cocoa
+      cp $infoPlist $out/Contents/Info.plist
+      cp -r ${wallpapers} $out/Contents/Resources
+    '';
+    dontInstall = true;
+    dontFixup = true;
+  };
+
   # Terminal.app keeps its profiles as archived NSColor/NSFont objects, so the
   # spec is plain JSON and ./terminal-profile.js does the archiving with AppKit.
   terminalProfile = pkgs.writeText "cyberdeck-terminal.json" (
@@ -61,6 +88,10 @@ in
 {
   home.activation.cyberdeckTerminal = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     run /usr/bin/osascript -l JavaScript ${./terminal-profile.js} ${terminalProfile}
+  '';
+
+  home.activation.cyberdeckScreensaver = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    run /usr/bin/osascript -l JavaScript ${./screensaver.js} ${screensaver}
   '';
 
   # A launchd agent rather than an activation step: setting the wallpaper needs
