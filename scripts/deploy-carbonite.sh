@@ -31,8 +31,8 @@ esac
 say() { printf '\033[36m==>\033[0m %s\n' "$*"; }
 
 say "Copying the flake and its inputs to ${host}"
-src=$(nix eval --raw --impure --expr "(builtins.getFlake (toString ${repo})).outPath")
-nix flake archive --to "ssh-ng://root@${host}" "$repo"
+# The last "path" in the JSON is the flake's own source; the inputs precede it.
+src=$(nix flake archive --json --to "ssh-ng://root@${host}" "$repo" | sed 's/.*"path":"\([^"]*\)"}$/\1/')
 echo "$src"
 
 say "Building and activating on ${host} (${action})"
