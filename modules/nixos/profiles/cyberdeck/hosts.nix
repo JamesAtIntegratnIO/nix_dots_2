@@ -3,8 +3,8 @@
 # order.
 [
   "holocron"
-  "mom-support-pi"
+  "probedroid"
   "carbonite"
   "datapad"
-  "ghrunner"
+  "pitdroid"
 ]

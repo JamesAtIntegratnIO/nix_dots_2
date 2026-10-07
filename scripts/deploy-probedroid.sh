@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# Build mom-support-pi on the Mac's linux-builder and deploy it over the tailnet,
+# Build probedroid on the Mac's linux-builder and deploy it over the tailnet,
 # with an automatic rollback: before activating, the Pi arms a timer that
 # switches back to the running generation. The script only disarms it after a
 # fresh SSH connection reaches the new generation, so a deploy that breaks
 # networking or Tailscale undoes itself instead of needing a trip to Mom's.
 #
-#   scripts/deploy-mom-support-pi.sh [switch|test] [--reboot]
+#   scripts/deploy-probedroid.sh [switch|test] [--reboot]
 #
 #   switch   activate now and make it the boot default (default)
 #   test     activate now without touching the boot default
 #   --reboot reboot after a confirmed switch and wait for SSH to come back
 #
-# MOM_PI_HOST overrides the target (default: the tailnet name "mom-support-pi").
+# PROBEDROID_HOST overrides the target (default: the tailnet name "probedroid").
 # MOM_PI_ROLLBACK_SECS sets the rollback window (default 180).
 
 # Remote commands deliberately interpolate local values (store paths).
@@ -20,7 +20,7 @@ set -euo pipefail
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repo="${script_dir}/.."
-host="${MOM_PI_HOST:-mom-support-pi}"
+host="${PROBEDROID_HOST:-probedroid}"
 window="${MOM_PI_ROLLBACK_SECS:-180}"
 
 action=switch
@@ -44,7 +44,7 @@ say() { printf '\033[36m==>\033[0m %s\n' "$*"; }
 remote() { ssh -o ConnectTimeout=8 -o BatchMode=yes "root@${host}" "$@"; }
 
 say "Building on the linux-builder"
-out=$(nix build "${repo}#nixosConfigurations.mom-support-pi.config.system.build.toplevel" \
+out=$(nix build "${repo}#nixosConfigurations.probedroid.config.system.build.toplevel" \
   --no-link --print-out-paths)
 echo "$out"
 

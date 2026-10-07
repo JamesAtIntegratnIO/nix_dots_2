@@ -26,7 +26,7 @@ api_base() {
     *) echo "orgs/$1" ;;
   esac
 }
-flake_host="ghrunner"
+flake_host="pitdroid"
 token_dir="/var/lib/github-runner-tokens"
 
 # The instances and their repositories come from the configuration itself, so

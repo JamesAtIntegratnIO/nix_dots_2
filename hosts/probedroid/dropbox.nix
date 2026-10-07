@@ -1,6 +1,6 @@
 # A drop box for Mom: send files to the Pi with Taildrop (`tailscale file cp
-# <file> mom-support-pi:` or the share sheet), and she opens them from the
-# "Dropbox" SMB share on her computer (\\mom-support-pi\Dropbox).
+# <file> probedroid:` or the share sheet), and she opens them from the
+# "Dropbox" SMB share on her computer (\\probedroid\Dropbox).
 #
 # Taildrop requires the sender and the Pi to belong to the same Tailscale user,
 # so this stops working if the Pi is ever moved to a tag.
@@ -50,7 +50,7 @@ in
     openFirewall = true;
     settings = {
       global = {
-        "server string" = "mom-support-pi";
+        "server string" = "probedroid";
         "map to guest" = "never";
         "server min protocol" = "SMB2_10";
       };

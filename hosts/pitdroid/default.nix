@@ -19,7 +19,7 @@ in
     ../../modules/nixos/github-runner.nix
   ];
 
-  networking.hostName = "ghrunner";
+  networking.hostName = "pitdroid";
   networking.useDHCP = true;
 
   boot.loader = {

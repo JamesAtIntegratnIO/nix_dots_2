@@ -122,9 +122,9 @@ run `passwd` for the `jdreier` user, then deploy updates over SSH:
 nixos-rebuild switch --flake .#datapad --target-host jdreier@datapad --use-remote-sudo
 ```
 
-## mom-support-pi
+## probedroid
 
-`hosts/mom-support-pi` is a headless Raspberry Pi 5 on NVMe that sits on Mom's
+`hosts/probedroid` is a headless Raspberry Pi 5 on NVMe that sits on Mom's
 LAN (`192.168.1.0/24`) for remote network support. It is a Tailscale subnet
 router for her LAN and an exit node, and it accepts tailnet routes so her
 devices can reach home services (Plex) through it. `network.nix` has the
@@ -137,7 +137,7 @@ Do these at home, before the Pi goes to her house:
 1. Set the Pi 5's EEPROM to try NVMe first (`BOOT_ORDER=0xf416`; add
    `PCIE_PROBE=1` for a non-HAT+ adapter), for example from Raspberry Pi OS on a
    spare SD card with `sudo rpi-eeprom-config --edit`.
-2. `nix build .#packages.aarch64-linux.mom-support-pi-image`, then write
+2. `nix build .#packages.aarch64-linux.probedroid-image`, then write
    `result/sd-image/*.img.zst` to the NVMe drive in a USB enclosure (same `zstd
    -dc … | sudo dd` as the PocketTerm image). The root partition grows to fill
    the drive on first boot.
@@ -150,7 +150,7 @@ After that, deploy over the tailnet. The script rolls back on its own if it
 can't reach the new generation within 3 minutes:
 
 ```console
-scripts/deploy-mom-support-pi.sh
+scripts/deploy-probedroid.sh
 ```
 Ollama stays installed with its service disabled. Existing data and credentials
 remain at their original `/Users/jdreier` paths. Nix management stays disabled

@@ -3,7 +3,7 @@
 let
   # RustDesk without Tailscale on her PCs: the Pi listens on its tailnet
   # address and forwards to each PC's RustDesk direct-IP port (21118). Connect
-  # from the Mac to mom-support-pi:<port>. On each PC: RustDesk installed as a
+  # from the Mac to probedroid:<port>. On each PC: RustDesk installed as a
   # service, Direct IP access on, a permanent password, the IP whitelist set to
   # this Pi's LAN IP, and a DHCP reservation on her router.
   #

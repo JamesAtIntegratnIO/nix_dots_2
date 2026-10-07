@@ -2,8 +2,8 @@
 # her network can be supported remotely over Tailscale.
 #
 # Built on the Mac Studio's linux-builder. The first install is a disk image
-# (`.#packages.aarch64-linux.mom-support-pi-image`) written straight to the NVMe drive;
-# after that, deploy with `scripts/deploy-mom-support-pi.sh`, which rolls back
+# (`.#packages.aarch64-linux.probedroid-image`) written straight to the NVMe drive;
+# after that, deploy with `scripts/deploy-probedroid.sh`, which rolls back
 # on its own if the new generation can't be reached.
 {
   lib,
@@ -26,13 +26,13 @@ in
     ./dropbox.nix
   ];
 
-  networking.hostName = "mom-support-pi";
+  networking.hostName = "probedroid";
 
   # Generation-aware bootloader (the base module still defaults to the
   # deprecated "kernelboot" for the Pi 5).
   boot.loader.raspberry-pi.bootloader = "kernel";
 
-  # Matches the layout written by `.#mom-support-pi-image`; mkDefault lets the
+  # Matches the layout written by `.#probedroid-image`; mkDefault lets the
   # sd-image module own these while building the image itself. The labels are
   # the image module's, even though the disk is NVMe rather than SD.
   fileSystems = {

@@ -75,10 +75,10 @@
         modules = [ ./hosts/carbonite ];
       };
 
-      nixosConfigurations.ghrunner = nixpkgs.lib.nixosSystem {
+      nixosConfigurations.pitdroid = nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = { inherit inputs; };
-        modules = [ ./hosts/ghrunner ];
+        modules = [ ./hosts/pitdroid ];
       };
 
       # PocketTerm35 handheld (Raspberry Pi 5). Uses the raspberrypi flake's
@@ -104,23 +104,23 @@
         inputs.self.nixosConfigurations.datapad-sdimage.config.system.build.sdImage;
 
       # Headless Pi 5 at Mom's house for remote network support.
-      nixosConfigurations.mom-support-pi = inputs.nixos-raspberrypi.lib.nixosSystem {
+      nixosConfigurations.probedroid = inputs.nixos-raspberrypi.lib.nixosSystem {
         specialArgs = { inherit inputs; };
-        modules = [ ./hosts/mom-support-pi ];
+        modules = [ ./hosts/probedroid ];
       };
 
       # First-install image, written to the NVMe drive (not an SD card):
-      # `nix build .#packages.aarch64-linux.mom-support-pi-image` on the Mac Studio.
-      nixosConfigurations.mom-support-pi-image = inputs.nixos-raspberrypi.lib.nixosSystem {
+      # `nix build .#packages.aarch64-linux.probedroid-image` on the Mac Studio.
+      nixosConfigurations.probedroid-image = inputs.nixos-raspberrypi.lib.nixosSystem {
         specialArgs = { inherit inputs; };
         modules = [
-          ./hosts/mom-support-pi
+          ./hosts/probedroid
           inputs.nixos-raspberrypi.nixosModules.sd-image
         ];
       };
 
-      packages.aarch64-linux.mom-support-pi-image =
-        inputs.self.nixosConfigurations.mom-support-pi-image.config.system.build.sdImage;
+      packages.aarch64-linux.probedroid-image =
+        inputs.self.nixosConfigurations.probedroid-image.config.system.build.sdImage;
 
       formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt-tree;
 
