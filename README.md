@@ -1,7 +1,7 @@
 # NixOS laptop and Mac Studio configuration
 
 This flake manages the NixOS laptop `carbonite` (a ThinkPad X1 Carbon) and
-Apple Silicon Mac `mac-studio`. Host-specific hardware and identity live under
+Apple Silicon Mac `holocron`. Host-specific hardware and identity live under
 `hosts/`; operating-system configuration lives under `modules/nixos/` and
 `modules/darwin/`.
 
@@ -15,7 +15,7 @@ Apple Silicon Mac `mac-studio`. Host-specific hardware and identity live under
 │   ├── carbonite/
 │   │   ├── default.nix
 │   │   └── hardware-configuration.nix
-│   └── mac-studio/
+│   └── holocron/
 │       └── default.nix
 ├── home/
 │   ├── boboysdadda/
@@ -38,7 +38,7 @@ Apple Silicon Mac `mac-studio`. Host-specific hardware and identity live under
   or laptop power management.
 - `home/boboysdadda` contains user-scoped shell, Git, editor, and development
   configuration managed by Home Manager as part of the system rebuild.
-- `hosts/mac-studio/default.nix` supplies the Mac's module list in its original
+- `hosts/holocron/default.nix` supplies the Mac's module list in its original
   order; `home/jdreier` forwards its preserved Home Manager module.
 
 ## Apply
@@ -71,10 +71,10 @@ nix develop
 
 ## Mac Studio
 
-`hosts/mac-studio/default.nix` composes the existing `jdreier` Mac environment.
+`hosts/holocron/default.nix` composes the existing `jdreier` Mac environment.
 Its imported system, Home Manager, OpenCode, and Hermes modules live under
 `modules/darwin`; `home/jdreier/default.nix` is the user entry point.
-Mac-specific service and agent documentation is under `docs/mac-studio`.
+Mac-specific service and agent documentation is under `docs/holocron`.
 
 The import preserves the Mac's original package pins, LM Studio overlay,
 Qdrant and Colima launchd agents,
@@ -82,7 +82,7 @@ Docker plugins, shell/Git settings, and OpenCode/Hermes configuration and skills
 
 ## PocketTerm35 handheld
 
-`hosts/pocketterm/default.nix` composes the Waveshare PocketTerm35 (Raspberry
+`hosts/datapad/default.nix` composes the Waveshare PocketTerm35 (Raspberry
 Pi 5, 16GB). It is built with the `nixos-raspberrypi` flake's system builder so
 the Pi 5 vendor kernel and firmware are in scope, and it pulls those prebuilt
 artifacts from `nixos-raspberrypi.cachix.org` (declared in the flake's
@@ -112,14 +112,14 @@ via launchd and registers it in `/etc/nix/machines` (Determinate's nix.conf is
 left untouched). After a `darwin-rebuild switch`, the VM starts on demand and:
 
 ```console
-nix build .#pocketterm-sdimage
+nix build .#datapad-sdimage
 ```
 
 Flash the result under `result/sd-image/` to the microSD card, boot the device,
 run `passwd` for the `jdreier` user, then deploy updates over SSH:
 
 ```console
-nixos-rebuild switch --flake .#pocketterm --target-host jdreier@pocketterm --use-remote-sudo
+nixos-rebuild switch --flake .#datapad --target-host jdreier@datapad --use-remote-sudo
 ```
 
 ## mom-support-pi
@@ -162,14 +162,14 @@ versions separately from the laptop's inputs. Integration does not upgrade them.
 On the Mac, from a copy of this repository, build and inspect before switching:
 
 ```console
-nix build .#darwinConfigurations.mac-studio.system
-sudo darwin-rebuild switch --flake .#mac-studio
+nix build .#darwinConfigurations.holocron.system
+sudo darwin-rebuild switch --flake .#holocron
 ```
 
 Evaluate the Mac target from either machine with:
 
 ```console
-nix eval --raw .#darwinConfigurations.mac-studio.system.drvPath
+nix eval --raw .#darwinConfigurations.holocron.system.drvPath
 ```
 
 Update the LM Studio pin with `bash scripts/update-lmstudio.sh`; the script
@@ -216,14 +216,14 @@ tailscale ip -4
 
 Open each sign-in URL in your browser. No authentication keys belong in the
 flake. Enable MagicDNS in the Tailscale admin console, then verify connectivity
-from the laptop with `tailscale ping mac-studio`. The Mac's Nix module configures
+from the laptop with `tailscale ping holocron`. The Mac's Nix module configures
 resolution for its full `*.ts.net` name; use the full name or its Tailscale IP if
 the short hostname does not resolve.
 
 Existing macOS Remote Login supplies SSH:
 
 ```console
-ssh jdreier@<mac-studio-tailscale-ip>
+ssh jdreier@<holocron-tailscale-ip>
 ```
 
 The NixOS firewall allows Tailscale's encrypted UDP transport on port 41641.
@@ -234,7 +234,7 @@ while traveling, including after a reboot and FileVault unlock.
 ## Remote development on the Studio
 
 The laptop's `home/boboysdadda/remote-dev.nix` provides a verified SSH host key
-and the `studio` alias for `jdreier@mac-studio.chimera-mooneye.ts.net`.
+and the `studio` alias for `jdreier@holocron.chimera-mooneye.ts.net`.
 Connections use SSH keys, share a connection for ten minutes, and send
 keepalives to detect a dropped network connection.
 

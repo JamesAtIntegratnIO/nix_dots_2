@@ -2,8 +2,8 @@
 # touchscreen, built-in QWERTY keyboard, and gaming buttons.
 #
 # Built and deployed from the aarch64 Mac Studio (native, no emulation). The
-# first install is flashed from `nixosConfigurations.pocketterm-sdimage`; after
-# that, deploy with `nixos-rebuild switch --flake .#pocketterm --target-host`.
+# first install is flashed from `nixosConfigurations.datapad-sdimage`; after
+# that, deploy with `nixos-rebuild switch --flake .#datapad --target-host`.
 {
   lib,
   ...
@@ -31,12 +31,12 @@ in
     ../../modules/nixos/profiles/emulation.nix
   ];
 
-  networking.hostName = "pocketterm";
+  networking.hostName = "datapad";
   networking.networkmanager.enable = true;
   # INFO (default WARN) so a stalled Wi-Fi activation shows where it stuck.
   networking.networkmanager.logLevel = "INFO";
 
-  # Matches the layout written by `.#pocketterm-sdimage`. Declared here so the
+  # Matches the layout written by `.#datapad-sdimage`. Declared here so the
   # deployable config (target-host rebuilds) is valid too; mkDefault lets the
   # sd-image module own these definitions while building the image itself.
   fileSystems = {

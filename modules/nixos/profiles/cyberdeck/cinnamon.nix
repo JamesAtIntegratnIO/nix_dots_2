@@ -43,10 +43,7 @@ let
     ];
     footer = "1920×1200 · X86_64 · CINNAMON";
     node = "0x01";
-    peers = [
-      "mac-studio"
-      "pocketterm"
-    ];
+    peers = builtins.filter (h: h != host) (import ./hosts.nix);
   };
   wallpaper = import ./wallpaper.nix (
     {

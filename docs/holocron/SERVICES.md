@@ -111,7 +111,7 @@ A local inference server. Disabled by default but fully wired up and ready to en
 2. Change `enableOllama = false;` to `enableOllama = true;`
 3. Rebuild:
    ```bash
-   darwin-rebuild switch --flake .#mac-studio
+   darwin-rebuild switch --flake .#holocron
    ```
 4. The service starts automatically (`RunAtLoad = true`, `KeepAlive = true`).
 

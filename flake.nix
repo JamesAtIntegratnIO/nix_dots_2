@@ -57,14 +57,14 @@
       system = "x86_64-linux";
     in
     {
-      darwinConfigurations.mac-studio = inputs.nix-darwin.lib.darwinSystem {
+      darwinConfigurations.holocron = inputs.nix-darwin.lib.darwinSystem {
         system = "aarch64-darwin";
         specialArgs = {
           inherit inputs;
-          hostname = "mac-studio";
+          hostname = "holocron";
           username = "jdreier";
         };
-        modules = import ./hosts/mac-studio { inherit inputs; };
+        modules = import ./hosts/holocron { inherit inputs; };
       };
 
       nixosConfigurations.carbonite = nixpkgs.lib.nixosSystem {
@@ -84,24 +84,24 @@
       # PocketTerm35 handheld (Raspberry Pi 5). Uses the raspberrypi flake's
       # system builder so the vendor kernel/firmware overlays are in scope; it
       # pins aarch64-linux and its own nixpkgs internally.
-      nixosConfigurations.pocketterm = inputs.nixos-raspberrypi.lib.nixosSystem {
+      nixosConfigurations.datapad = inputs.nixos-raspberrypi.lib.nixosSystem {
         specialArgs = { inherit inputs; };
-        modules = [ ./hosts/pocketterm ];
+        modules = [ ./hosts/datapad ];
       };
 
-      # Flashable first-install image: `nix build .#pocketterm-sdimage` on the
+      # Flashable first-install image: `nix build .#datapad-sdimage` on the
       # Mac Studio, then dd the result to the microSD card.
-      nixosConfigurations.pocketterm-sdimage = inputs.nixos-raspberrypi.lib.nixosSystem {
+      nixosConfigurations.datapad-sdimage = inputs.nixos-raspberrypi.lib.nixosSystem {
         specialArgs = { inherit inputs; };
         modules = [
-          ./hosts/pocketterm
+          ./hosts/datapad
           inputs.nixos-raspberrypi.nixosModules.sd-image
         ];
       };
 
-      # `nix build .#pocketterm-sdimage` (built on the aarch64 Mac Studio).
-      packages.aarch64-linux.pocketterm-sdimage =
-        inputs.self.nixosConfigurations.pocketterm-sdimage.config.system.build.sdImage;
+      # `nix build .#datapad-sdimage` (built on the aarch64 Mac Studio).
+      packages.aarch64-linux.datapad-sdimage =
+        inputs.self.nixosConfigurations.datapad-sdimage.config.system.build.sdImage;
 
       # Headless Pi 5 at Mom's house for remote network support.
       nixosConfigurations.mom-support-pi = inputs.nixos-raspberrypi.lib.nixosSystem {

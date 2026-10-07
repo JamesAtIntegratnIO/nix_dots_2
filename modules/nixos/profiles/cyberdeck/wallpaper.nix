@@ -11,11 +11,11 @@
 {
   pkgs,
   palette,
-  name ? "pocketterm-wallpaper",
-  hostname ? "pocketterm",
+  name ? "datapad-wallpaper",
+  hostname ? "datapad",
   width ? 640,
   height ? 480,
-  title ? "POCKETTERM",
+  title ? "DATAPAD",
   os ? "nixos", # first word of the prompt line
   # The middle of the prompt line: "❯ <os> // <tags> // <hostname>".
   tags ? [
@@ -116,7 +116,7 @@ let
       }).${style};
   wy = y: toString (y + scene.dy); # the wordmark block, moved to clear the scene
 
-  svg = pkgs.writeText "pocketterm-wall.svg" ''
+  svg = pkgs.writeText "datapad-wall.svg" ''
     <svg xmlns="http://www.w3.org/2000/svg" width="${toString width}" height="${toString height}" viewBox="0 0 ${toString vw} 480">
       <defs>
         <radialGradient id="bg" cx="36%" cy="40%" r="75%">

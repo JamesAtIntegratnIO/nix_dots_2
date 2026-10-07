@@ -7,7 +7,7 @@ Big-picture view of how nix-darwin, Home Manager, local AI services, and the ope
 ```
 flake.nix
     │
-    ├─► nix-darwin (darwinConfigurations.mac-studio)
+    ├─► nix-darwin (darwinConfigurations.holocron)
     │       │
     │       ├─ modules/darwin/configuration.nix   ← host settings, system packages
     │       ├─ modules/darwin/local-ai.nix         ← launchd user agents

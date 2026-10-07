@@ -81,11 +81,11 @@ for instance in "$@"; do
   # either: the account is hidden and its shell is /usr/bin/false. So configure
   # as root with the documented waiver, then hand the tree over so the daemon
   # owns its own credentials. Each instance takes a fresh token; they expire.
-  echo "==> Registering ${instance} as mac-studio-${instance}"
+  echo "==> Registering ${instance} as holocron-${instance}"
   sudo env RUNNER_ALLOW_RUNASROOT=1 "HOME=/Users/${runner_user}" "${dir}/config.sh" \
     --url "https://github.com/${scope}" \
     --token "$(gh api -X POST "$(api_base "$scope")/actions/runners/registration-token" -q .token)" \
-    --name "mac-studio-${instance}" \
+    --name "holocron-${instance}" \
     --labels "$labels" \
     --work _work \
     --unattended --replace
@@ -104,7 +104,7 @@ cat >&2 <<EOF
 ==> Registered. A new instance stays offline until launchd is told about it: add
     it to \`instances\` in modules/darwin/github-runner.nix, then
 
-      sudo darwin-rebuild switch --flake .#mac-studio
+      sudo darwin-rebuild switch --flake .#holocron
 
 EOF
 

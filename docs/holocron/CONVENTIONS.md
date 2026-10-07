@@ -50,7 +50,7 @@ cloud = with pkgs; [ google-cloud-sdk ];
 
 3. **Rebuild**:
    ```bash
-   darwin-rebuild switch --flake .#mac-studio
+   darwin-rebuild switch --flake .#holocron
    ```
 
 ### Naming Conventions
@@ -112,7 +112,7 @@ in {
 
 **To enable a toggle service:**
 1. Set the flag to `true`
-2. Run `darwin-rebuild switch --flake .#mac-studio`
+2. Run `darwin-rebuild switch --flake .#holocron`
 3. The service starts automatically via `RunAtLoad = true`
 
 **To disable:** Set the flag back to `false` and rebuild. The service stops; data dirs remain.
@@ -154,7 +154,7 @@ in {
 
 4. **Rebuild**:
    ```bash
-   darwin-rebuild switch --flake .#mac-studio
+   darwin-rebuild switch --flake .#holocron
    ```
 
 **Agent fields reference:**

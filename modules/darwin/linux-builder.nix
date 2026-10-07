@@ -8,7 +8,7 @@
 # /etc/nix/machines, which Nix already reads by default (`builders =
 # @/etc/nix/machines`). Determinate's nix.conf / nix.custom.conf are left alone.
 #
-# Lets `nix build .#pocketterm-sdimage` (and any other aarch64-linux build) run
+# Lets `nix build .#datapad-sdimage` (and any other aarch64-linux build) run
 # natively on the Studio instead of needing a separate Linux box.
 {
   pkgs,

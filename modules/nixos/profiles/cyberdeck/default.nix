@@ -432,7 +432,7 @@ in
     "--time"
     "--asterisks"
     "--remember"
-    "--greeting 'POCKETTERM // AUTHORIZED ACCESS ONLY'"
+    "--greeting 'DATAPAD // AUTHORIZED ACCESS ONLY'"
     "--theme 'border=cyan;title=cyan;greet=magenta;text=white;prompt=green;time=yellow;action=cyan;button=magenta;input=white;container=black'"
     "--cmd sway"
   ];

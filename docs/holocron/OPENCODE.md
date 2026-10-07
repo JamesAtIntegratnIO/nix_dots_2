@@ -348,7 +348,7 @@ No manual copy steps, no runtime network calls. The entire `~/.config/opencode/`
 
 If the qdrant MCP server shows `ENOENT: no such file or directory`, the Python venv was garbage-collected. Fix:
 ```bash
-darwin-rebuild switch --flake .#mac-studio
+darwin-rebuild switch --flake .#holocron
 ```
 The `qdrantMcpEnv` is in `home.packages` to prevent this. If it happens, the GC root was lost.
 
@@ -364,5 +364,5 @@ Skills are indexed at opencode startup. After a rebuild:
 Nix flakes only see Git-tracked files. After creating a new file:
 ```bash
 git add <file>
-darwin-rebuild switch --flake .#mac-studio
+darwin-rebuild switch --flake .#holocron
 ```

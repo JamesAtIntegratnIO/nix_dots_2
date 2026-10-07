@@ -3,14 +3,14 @@
 # SSH (no reflash). Checks afterwards that the firmware boot entry really points
 # at the new generation -- /boot/firmware once silently missed every install.
 #
-#   scripts/deploy-pocketterm.sh [switch|boot|test] [--reboot]
+#   scripts/deploy-datapad.sh [switch|boot|test] [--reboot]
 #
 #   switch   activate now and make it the boot default (default)
 #   boot     only make it the boot default; takes effect on next reboot
 #   test     activate now without touching the boot default
 #   --reboot reboot afterwards and wait for SSH to come back
 #
-# POCKETTERM_HOST overrides the target (default: the tailnet name "pocketterm").
+# DATAPAD_HOST overrides the target (default: the tailnet name "datapad").
 
 # Remote commands deliberately interpolate local values (the store path).
 # shellcheck disable=SC2029
@@ -18,7 +18,7 @@ set -euo pipefail
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repo="${script_dir}/.."
-host="${POCKETTERM_HOST:-pocketterm}"
+host="${DATAPAD_HOST:-datapad}"
 
 action=switch
 reboot=false
@@ -36,7 +36,7 @@ done
 say() { printf '\033[36m==>\033[0m %s\n' "$*"; }
 
 say "Building on the linux-builder"
-out=$(nix build "${repo}#nixosConfigurations.pocketterm.config.system.build.toplevel" \
+out=$(nix build "${repo}#nixosConfigurations.datapad.config.system.build.toplevel" \
   --no-link --print-out-paths)
 echo "$out"
 

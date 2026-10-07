@@ -16,7 +16,7 @@ let
   splash = import ./wallpaper.nix (
     {
       inherit pkgs palette;
-      name = "pocketterm-splash";
+      name = "datapad-splash";
     }
     // wallpaperArgs
     // {

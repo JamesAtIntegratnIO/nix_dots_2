@@ -33,10 +33,7 @@ let
     ];
     footer = "3840×2160 · ARM64 · AQUA";
     node = "0x02";
-    peers = [
-      "pocketterm"
-      "carbonite"
-    ];
+    peers = builtins.filter (h: h != hostname) (import ../../../nixos/profiles/cyberdeck/hosts.nix);
   };
 
   # The screen saver is the same renders in a .saver bundle, which

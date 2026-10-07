@@ -24,7 +24,7 @@ let
 
       usage() {
         cat <<'EOF'
-      pocketterm wiki -- offline reference
+      datapad wiki -- offline reference
 
         wiki            browse every topic (type to filter, Enter reads, q quits)
         wiki <query>    open a topic by name (e.g. `wiki pager`), else by text

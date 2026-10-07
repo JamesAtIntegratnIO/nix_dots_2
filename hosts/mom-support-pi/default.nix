@@ -43,7 +43,7 @@ in
     "/boot/firmware" = {
       device = lib.mkDefault "/dev/disk/by-label/FIRMWARE";
       fsType = lib.mkDefault "vfat";
-      # Automount, not plain noauto: see hosts/pocketterm -- with noauto the
+      # Automount, not plain noauto: see hosts/datapad -- with noauto the
       # bootloader installer silently wrote into the empty mountpoint.
       options = lib.mkDefault [
         "nofail"

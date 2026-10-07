@@ -245,12 +245,13 @@ let
         + lib.optionalString (name != "") ''
           <text x="${s (c.x + 10)}" y="${s (c.y + 3)}" font-family="${font}" font-size="9" letter-spacing="1" fill="#${p.text}">${name}</text>
         '';
-      # Where the first four peers go; any more are left off.
+      # Where the first four peers go; any more are left off. Each slot has
+      # room to its right for a 14-character name inside the outer ring.
       slots = [
-        (blip (-72) 118 p.cyan)
+        (blip (-95) 120 p.cyan)
         (blip (-150) 150 p.cyan)
         (blip 160 105 p.cyan)
-        (blip 68 150 p.cyan)
+        (blip 75 140 p.cyan)
       ];
     in
     {

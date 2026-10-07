@@ -3,7 +3,7 @@
 let
   # This public host key was verified using the existing trusted LAN entry.
   studioHostKeys = pkgs.writeText "studio-known-hosts" ''
-    mac-studio ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKXLOnYrejrfjt3t1dhk2+4aq+7JAL6sLDhYOsA/Lrq1
+    holocron ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKXLOnYrejrfjt3t1dhk2+4aq+7JAL6sLDhYOsA/Lrq1
   '';
   studio = pkgs.writeShellApplication {
     name = "studio";
@@ -30,10 +30,10 @@ in
   programs.ssh = {
     enable = true;
     enableDefaultConfig = false;
-    settings."studio mac-studio mac-studio.chimera-mooneye.ts.net" = {
-      HostName = "mac-studio.chimera-mooneye.ts.net";
+    settings."studio holocron holocron.chimera-mooneye.ts.net" = {
+      HostName = "holocron.chimera-mooneye.ts.net";
       User = "jdreier";
-      HostKeyAlias = "mac-studio";
+      HostKeyAlias = "holocron";
       UserKnownHostsFile = [
         "~/.ssh/known_hosts"
         "${studioHostKeys}"
