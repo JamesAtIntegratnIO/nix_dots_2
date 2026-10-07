@@ -128,37 +128,49 @@ rec {
     "ga=32:gm=33:gd=31:gv=36:gt=35"
   ];
 
-  # The prompt, one line for every shell on every host:
-  #   [user@host ]some/dir[ branch] ❯
-  # user@host only over SSH (and "root" whenever it is root); the arrow turns
-  # red after a failed command. Starship calls ANSI magenta "purple".
+  # The prompt is starship on every host. The Mac and the laptop get all of
+  # its modules (language versions, git status, command duration, ...) with
+  # the deck's colors on the parts the hosts share. Starship calls ANSI
+  # magenta "purple".
   starship = {
-    add_newline = false;
-    format = "($username$hostname )$directory$git_branch$character";
     username = {
-      format = "[$user]($style)";
       style_user = "yellow";
       style_root = "red";
     };
-    hostname = {
+    hostname.style = "yellow";
+    directory.style = "cyan";
+    git_branch.style = "purple";
+    character = {
+      success_symbol = "[❯](green)";
+      error_symbol = "[❯](red)";
+    };
+  };
+
+  # The PocketTerm's 640x480 panel is 64 columns wide, so its prompt is cut
+  # down to one short line:
+  #   [user@host ]some/dir[ branch] ❯
+  # user@host only over SSH (and "root" whenever it is root); the arrow turns
+  # red after a failed command.
+  starshipCompact = {
+    add_newline = false;
+    format = "($username$hostname )$directory$git_branch$character";
+    username = starship.username // {
+      format = "[$user]($style)";
+    };
+    hostname = starship.hostname // {
       ssh_only = true;
       format = "[@$hostname]($style)";
-      style = "yellow";
     };
-    directory = {
+    directory = starship.directory // {
       format = "[$path]($style)";
-      style = "cyan";
       truncation_length = 2;
       truncate_to_repo = false;
     };
-    git_branch = {
+    git_branch = starship.git_branch // {
       format = " [$branch]($style)";
-      style = "purple";
     };
-    character = {
+    character = starship.character // {
       format = " $symbol ";
-      success_symbol = "[❯](green)";
-      error_symbol = "[❯](red)";
     };
   };
 }

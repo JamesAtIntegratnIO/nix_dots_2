@@ -74,11 +74,11 @@ in
   environment.variables.EZA_COLORS = cli.ezaColors;
   environment.shellAliases.ll = "eza -la";
 
-  # One prompt for every interactive shell, one line to save vertical space
-  # on the 640x480 panel.
+  # Starship for every interactive shell, as on the other hosts, cut down to
+  # one short line for the 640x480 panel.
   programs.starship = {
     enable = true;
-    settings = cli.starship;
+    settings = cli.starshipCompact;
   };
 
   # Neovim reads /etc/xdg/nvim as part of its runtime path: the scheme by

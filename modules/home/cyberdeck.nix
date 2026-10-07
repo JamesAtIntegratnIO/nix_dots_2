@@ -1,5 +1,5 @@
 # The cyberdeck look for the command line and the editors, for every host
-# that has Home Manager (the Mac and the laptop): one prompt, the CLI tools,
+# that has Home Manager (the Mac and the laptop): the prompt, the CLI tools,
 # file-listing colors, and the Neovim and VS Code themes. The values come from
 # ../nixos/profiles/cyberdeck, which the PocketTerm applies system-wide in its
 # terminal.nix, so the three hosts cannot drift apart.
