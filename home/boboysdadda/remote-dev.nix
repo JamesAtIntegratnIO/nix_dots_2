@@ -2,10 +2,10 @@
 
 let
   # RustDesk takes an idle inhibitor ("wakelock") for the whole of an outgoing
-  # session unless this option is off, and a Studio session left open kept the
+  # session unless that option is off, and a Studio session left open kept the
   # laptop from blanking, locking or suspending for days. Typing into the
   # session still counts as activity here, so nothing sleeps mid-use. The
-  # option lives in the app's mutable config, next to state Nix must not own.
+  # options live in the app's mutable config, next to state Nix must not own.
   rustdeskSettings = pkgs.writeShellScript "rustdesk-settings" ''
     exec ${pkgs.python3.withPackages (p: [ p.tomlkit ])}/bin/python3 ${./rustdesk-settings.py}
   '';
@@ -26,14 +26,32 @@ let
         "exec /bin/zsh -l -c 'cd /Users/jdreier/Projects && exec tmux new-session -A -s $session'"
     '';
   };
+  # A session decodes the Studio's 4K H.265 stream on the CPU, most of a core,
+  # unless it knows the GPU can do it. On Linux RustDesk keeps that list only
+  # in the memory of its server process, which tests the decoders when it
+  # starts; a session asks it over a socket and falls back to software when
+  # nobody answers. So the server runs for as long as the session does.
+  # rustdesk-settings.py keeps it from acting as a host.
   studioDesktop = pkgs.writeShellApplication {
     name = "studio-desktop";
-    runtimeInputs = [ pkgs.rustdesk-flutter ];
+    runtimeInputs = [
+      pkgs.rustdesk-flutter
+      pkgs.procps
+    ];
     # RustDesk rewrites its config from memory, so an edit made at activation
     # can be lost to a running instance; set it again on the way in.
     text = ''
       ${rustdeskSettings}
-      exec rustdesk --connect 100.118.166.83:21118 "$@"
+      started=
+      if ! pgrep -f 'rustdesk --server' >/dev/null; then
+        rustdesk --server >/dev/null 2>&1 &
+        started=1
+        sleep 4 # it waits 3 seconds before testing the decoders
+      fi
+      rustdesk --connect 100.118.166.83:21118 "$@" || true
+      if [[ -n $started ]]; then
+        pkill -f 'rustdesk --(server|tray)' || true
+      fi
     '';
   };
 in
