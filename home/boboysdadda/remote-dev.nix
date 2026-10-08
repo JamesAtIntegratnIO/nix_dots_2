@@ -1,6 +1,14 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
 let
+  # RustDesk takes an idle inhibitor ("wakelock") for the whole of an outgoing
+  # session unless this option is off, and a Studio session left open kept the
+  # laptop from blanking, locking or suspending for days. Typing into the
+  # session still counts as activity here, so nothing sleeps mid-use. The
+  # option lives in the app's mutable config, next to state Nix must not own.
+  rustdeskSettings = pkgs.writeShellScript "rustdesk-settings" ''
+    exec ${pkgs.python3.withPackages (p: [ p.tomlkit ])}/bin/python3 ${./rustdesk-settings.py}
+  '';
   # This public host key was verified using the existing trusted LAN entry.
   studioHostKeys = pkgs.writeText "studio-known-hosts" ''
     holocron ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKXLOnYrejrfjt3t1dhk2+4aq+7JAL6sLDhYOsA/Lrq1
@@ -21,7 +29,10 @@ let
   studioDesktop = pkgs.writeShellApplication {
     name = "studio-desktop";
     runtimeInputs = [ pkgs.rustdesk-flutter ];
+    # RustDesk rewrites its config from memory, so an edit made at activation
+    # can be lost to a running instance; set it again on the way in.
     text = ''
+      ${rustdeskSettings}
       exec rustdesk --connect 100.118.166.83:21118 "$@"
     '';
   };
@@ -53,6 +64,10 @@ in
     studioDesktop
     pkgs.rustdesk-flutter
   ];
+
+  home.activation.rustdeskSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    run ${rustdeskSettings}
+  '';
 
   # rustdesk-flutter ships its own menu entry, but studio-desktop is a bare
   # script, so the Studio session was reachable only from a terminal. Exec is

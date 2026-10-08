@@ -33,6 +33,11 @@
       inhibit-lid-switch = false;
       lid-close-ac-action = "nothing";
       lid-close-battery-action = "nothing";
+      # Cinnamon's defaults never suspend an idle laptop and leave the panel
+      # lit for half an hour. On battery: panel off at 5 minutes, suspend at
+      # 15 (which locks, lock-on-suspend being the default). AC is left alone.
+      sleep-display-battery = 300;
+      sleep-inactive-battery-timeout = 900;
     };
 
     "org/cinnamon/desktop/keybindings/wm" = {
