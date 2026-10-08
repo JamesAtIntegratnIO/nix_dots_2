@@ -303,14 +303,64 @@ in
     ---- Monitors ----
     -- The laptop panel on the left; anything plugged in goes to its right, at
     -- the same 1x scale it has under Cinnamon.
-    hl.monitor({ output = "eDP-1", mode = "preferred", position = "0x0", scale = 1 })
     hl.monitor({ output = "", mode = "preferred", position = "auto", scale = 1 })
+
+    -- With the lid shut and another monitor attached, logind keeps the laptop
+    -- awake (HandleLidSwitchDocked), and Hyprland by itself would go on
+    -- lighting and drawing the panel inside the closed lid. Turn it off then,
+    -- which also moves its workspaces to the other monitor, and back on when
+    -- the lid opens or the other monitor goes away.
+    local panel = "eDP-1"
+
+    local function lid_closed()
+      local file = io.open("/proc/acpi/button/lid/LID/state")
+      if not file then
+        return false
+      end
+      local state = file:read("a")
+      file:close()
+      return state:find("closed") ~= nil
+    end
+
+    -- closed: the lid's state when the caller knows it, else read it.
+    -- gone: a monitor being removed, which may still be listed.
+    local function sync_panel(closed, gone)
+      if closed == nil then
+        closed = lid_closed()
+      end
+      local external = false
+      for _, monitor in ipairs(hl.get_monitors()) do
+        if monitor.name ~= panel and monitor.name ~= gone then
+          external = true
+        end
+      end
+      if closed and external then
+        hl.monitor({ output = panel, disabled = true })
+      else
+        hl.monitor({ output = panel, disabled = false, mode = "preferred", position = "0x0", scale = 1 })
+      end
+    end
+
+    sync_panel()
+    hl.bind("switch:on:Lid Switch", function() sync_panel(true) end, { locked = true })
+    hl.bind("switch:off:Lid Switch", function() sync_panel(false) end, { locked = true })
+    hl.on("monitor.added", function(monitor)
+      if monitor.name ~= panel then
+        sync_panel()
+      end
+    end)
+    hl.on("monitor.removed", function(monitor)
+      if monitor.name ~= panel then
+        sync_panel(nil, monitor.name)
+      end
+    end)
 
     hl.env("XCURSOR_THEME", "Bibata-Modern-Classic")
     hl.env("XCURSOR_SIZE", "24")
     hl.env("HYPRCURSOR_SIZE", "24")
 
     hl.on("hyprland.start", function()
+      sync_panel()
     ${lib.concatMapStringsSep "\n" (cmd: "  hl.exec_cmd(${builtins.toJSON cmd})") autostart}
     end)
 
@@ -476,10 +526,27 @@ in
 
     -- The same keys as Cinnamon. m+1 and m-1 step through the workspaces of
     -- the focused monitor only.
+    --
+    -- The Mac switches its own spaces with bare Ctrl+Left/Right, so while a
+    -- RustDesk session has focus those two are switched off and the keys
+    -- reach the Mac. The Ctrl+Alt and Ctrl+Super pairs always work here.
+    local shared_with_remote = {}
     for _, keys in ipairs({ "CTRL", "CTRL + ALT", "CTRL + SUPER" }) do
-      hl.bind(keys .. " + left", hl.dsp.focus({ workspace = "m-1" }))
-      hl.bind(keys .. " + right", hl.dsp.focus({ workspace = "m+1" }))
+      local left = hl.bind(keys .. " + left", hl.dsp.focus({ workspace = "m-1" }))
+      local right = hl.bind(keys .. " + right", hl.dsp.focus({ workspace = "m+1" }))
+      if keys == "CTRL" then
+        shared_with_remote = { left, right }
+      end
     end
+
+    local function sync_remote_keys(window)
+      local remote = window ~= nil and window.class == "rustdesk"
+      for _, bind in ipairs(shared_with_remote) do
+        bind:set_enabled(not remote)
+      end
+    end
+    hl.on("window.active", guarded("window.active", sync_remote_keys))
+    sync_remote_keys(hl.get_active_window())
     hl.bind(mod .. " + mouse_down", hl.dsp.focus({ workspace = "m+1" }))
     hl.bind(mod .. " + mouse_up", hl.dsp.focus({ workspace = "m-1" }))
     hl.bind(mod .. " + SHIFT + CTRL + left", hl.dsp.window.move({ workspace = "m-1" }))
