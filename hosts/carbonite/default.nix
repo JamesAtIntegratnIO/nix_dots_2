@@ -17,6 +17,7 @@ in
     ../../modules/nixos/profiles/cyberdeck/cinnamon.nix
     ../../modules/nixos/profiles/development.nix
     ../../modules/nixos/profiles/element.nix
+    ../../modules/nixos/profiles/hyprland.nix
     ../../modules/nixos/profiles/laptop.nix
     ../../modules/nixos/profiles/tailscale.nix
   ];

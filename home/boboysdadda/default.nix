@@ -8,6 +8,7 @@
     ../../modules/home/cyberdeck.nix
     ./development.nix
     ./git.nix
+    ./hyprland.nix
     ./remote-dev.nix
     ./shell.nix
   ];
