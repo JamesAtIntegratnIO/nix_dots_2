@@ -25,6 +25,12 @@ in
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
+  # Hibernate writes RAM to the swap partition (16.8G for 16G of RAM). It is
+  # its own LUKS volume, already unlocked in the initrd, so resuming asks for
+  # the passphrase like any boot. modules/nixos/profiles/laptop.nix decides
+  # when to hibernate.
+  boot.resumeDevice = "/dev/mapper/luks-98f0177e-68cc-4775-bdf2-fd6a2b55fe30";
+
   users.users.boboysdadda = {
     isNormalUser = true;
     description = "boboysdadda";
