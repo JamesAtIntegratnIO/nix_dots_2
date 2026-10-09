@@ -180,8 +180,14 @@ in
   # The module's default prune is a weekly `docker system prune -f`, which
   # removes only dangling images and leaves every per-commit tag CI loads and
   # all the build cache that is not dangling: 773 images and 48 GB of cache on
-  # 2026-10-07, 66 GB of a 125 GB disk. Daily, and everything unused for three
-  # days, the same window the Mac's prune keeps (modules/darwin/docker.nix).
+  # 2026-10-07, 66 GB of a 125 GB disk. Daily, and everything unused for a day.
+  #
+  # It was three days, the window the Mac's prune keeps (modules/darwin/
+  # docker.nix). On 2026-10-08 a day of deliveries built image sets for six
+  # pull requests and their re-runs, 35 GB of images all younger than the
+  # window, and the gates started failing on a sandbox with 4 GiB free while
+  # the midnight prune had kept every one of them. A per-commit image is used
+  # by the run that built it and never again, so a day is already generous.
   virtualisation.docker = {
     enable = true;
     autoPrune = {
@@ -190,16 +196,51 @@ in
       flags = [
         "--all"
         "--filter"
-        "until=72h"
+        "until=24h"
       ];
     };
   };
 
-  # Three days of cache from eight runners is still most of the disk, so the
-  # cache is also held to a size. --reserved-space is docker 29's name for the
-  # old --keep-storage.
+  # A day of cache from the runners is still most of the disk, so the cache is
+  # also held to a size. --reserved-space is docker 29's name for the old
+  # --keep-storage.
   systemd.services.docker-prune.serviceConfig.ExecStartPost =
     "${pkgs.docker}/bin/docker builder prune -f --reserved-space 10GB";
+
+  # And a prune on pressure, because a calendar cannot see a busy day coming:
+  # every fifteen minutes, when the root filesystem has less than the floor
+  # free, everything Docker is not using right now goes, whatever its age, and
+  # the build cache with it. The floor is 20 GiB: a sandbox refuses to start an
+  # iteration with less than 4 GiB free at /home/agent, and a wave of five
+  # image builds writes more than ten between two ticks. Something a job is
+  # about to use can go with the rest — a base image pulled a moment ago, not
+  # yet in a container — and that job fails once and is re-run; the gate that
+  # fails for want of disk fails every job behind it until somebody notices.
+  systemd.services.docker-prune-on-pressure = {
+    description = "Prune everything Docker is not using when the disk runs low";
+    after = [ "docker.service" ];
+    requires = [ "docker.service" ];
+    path = [ pkgs.docker pkgs.coreutils ];
+    serviceConfig.Type = "oneshot";
+    script = ''
+      floor=$((20 * 1024 * 1024))
+      free=$(df --output=avail -k / | tail -1)
+      if [ "$free" -ge "$floor" ]; then
+        exit 0
+      fi
+      echo "root has $((free / 1024)) MiB free, under the $((floor / 1024)) MiB floor; pruning"
+      docker system prune -f --all
+      docker builder prune -af
+      echo "root has $(($(df --output=avail -k / | tail -1) / 1024)) MiB free after the prune"
+    '';
+  };
+  systemd.timers.docker-prune-on-pressure = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "5min";
+      OnUnitActiveSec = "15min";
+    };
+  };
 
   systemd.services.runner-tmp-sweep = {
     description = "Remove what finished jobs left in the runners' private /tmp";
