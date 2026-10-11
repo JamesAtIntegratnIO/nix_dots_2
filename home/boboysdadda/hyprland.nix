@@ -342,8 +342,8 @@ in
     end
 
     sync_panel()
-    hl.bind("switch:on:Lid Switch", function() sync_panel(true) end, { locked = true })
-    hl.bind("switch:off:Lid Switch", function() sync_panel(false) end, { locked = true })
+    hl.bind("switch:on:Lid Switch", function() sync_panel(true) end, { locked = true, submap_universal = true })
+    hl.bind("switch:off:Lid Switch", function() sync_panel(false) end, { locked = true, submap_universal = true })
     hl.on("monitor.added", function(monitor)
       if monitor.name ~= panel then
         sync_panel()
@@ -526,27 +526,39 @@ in
 
     -- The same keys as Cinnamon. m+1 and m-1 step through the workspaces of
     -- the focused monitor only.
-    --
-    -- The Mac switches its own spaces with bare Ctrl+Left/Right, so while a
-    -- RustDesk session has focus those two are switched off and the keys
-    -- reach the Mac. The Ctrl+Alt and Ctrl+Super pairs always work here.
-    local shared_with_remote = {}
     for _, keys in ipairs({ "CTRL", "CTRL + ALT", "CTRL + SUPER" }) do
-      local left = hl.bind(keys .. " + left", hl.dsp.focus({ workspace = "m-1" }))
-      local right = hl.bind(keys .. " + right", hl.dsp.focus({ workspace = "m+1" }))
-      if keys == "CTRL" then
-        shared_with_remote = { left, right }
-      end
+      hl.bind(keys .. " + left", hl.dsp.focus({ workspace = "m-1" }))
+      hl.bind(keys .. " + right", hl.dsp.focus({ workspace = "m+1" }))
     end
 
+    -- A RustDesk session is a Mac: Super is its Cmd key (Cmd+C, Cmd+V,
+    -- Cmd+Q...) and bare Ctrl+Left/Right switch its spaces, so nearly every
+    -- key above collides with something it needs. While a RustDesk window has
+    -- focus this submap replaces them all, and anything not listed in it goes
+    -- to the Mac. What stays for the laptop is on Ctrl+Super (Ctrl+Alt for
+    -- the arrows too); the binds marked `universal` further down, like the
+    -- volume keys, work in both.
+    hl.define_submap("remote", function()
+      for _, keys in ipairs({ "CTRL + ALT", "CTRL + SUPER" }) do
+        hl.bind(keys .. " + left", hl.dsp.focus({ workspace = "m-1" }))
+        hl.bind(keys .. " + right", hl.dsp.focus({ workspace = "m+1" }))
+      end
+      hl.bind("CTRL + SUPER + F", toggle_space)
+      hl.bind("CTRL + SUPER + Q", hl.dsp.window.close())
+      hl.bind("CTRL + SUPER + L", hl.dsp.exec_cmd("loginctl lock-session"))
+    end)
+
+    local in_remote = nil -- unknown until the first sync, which always sets it
     local function sync_remote_keys(window)
       local remote = window ~= nil and window.class == "rustdesk"
-      for _, bind in ipairs(shared_with_remote) do
-        bind:set_enabled(not remote)
+      if remote ~= in_remote then
+        in_remote = remote
+        hl.dispatch(hl.dsp.submap(remote and "remote" or "reset"))
       end
     end
     hl.on("window.active", guarded("window.active", sync_remote_keys))
     sync_remote_keys(hl.get_active_window())
+
     hl.bind(mod .. " + mouse_down", hl.dsp.focus({ workspace = "m+1" }))
     hl.bind(mod .. " + mouse_up", hl.dsp.focus({ workspace = "m-1" }))
     hl.bind(mod .. " + SHIFT + CTRL + left", hl.dsp.window.move({ workspace = "m-1" }))
@@ -574,7 +586,7 @@ in
     hl.bind(mod .. " + J", hl.dsp.layout("togglesplit"))
     hl.bind(mod .. " + L", hl.dsp.exec_cmd("loginctl lock-session"))
     hl.bind(mod .. " + SHIFT + E", hl.dsp.exit())
-    hl.bind("Print", hl.dsp.exec_cmd("${screenshot}"))
+    hl.bind("Print", hl.dsp.exec_cmd("${screenshot}"), { submap_universal = true })
 
     for _, direction in ipairs({ "left", "right", "up", "down" }) do
       hl.bind(mod .. " + " .. direction, hl.dsp.focus({ direction = direction }))
@@ -584,15 +596,16 @@ in
     hl.bind(mod .. " + mouse:272", hl.dsp.window.drag(), { mouse = true })
     hl.bind(mod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
-    local held = { locked = true, repeating = true }
+    local held = { locked = true, repeating = true, submap_universal = true }
+    local pressed = { locked = true, submap_universal = true }
     hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), held)
     hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"), held)
-    hl.bind("XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true })
-    hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true })
+    hl.bind("XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), pressed)
+    hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), pressed)
     hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("${pkgs.brightnessctl}/bin/brightnessctl -e4 -n2 set 5%+"), held)
     hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("${pkgs.brightnessctl}/bin/brightnessctl -e4 -n2 set 5%-"), held)
-    hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("${pkgs.playerctl}/bin/playerctl play-pause"), { locked = true })
-    hl.bind("XF86AudioNext", hl.dsp.exec_cmd("${pkgs.playerctl}/bin/playerctl next"), { locked = true })
-    hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("${pkgs.playerctl}/bin/playerctl previous"), { locked = true })
+    hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("${pkgs.playerctl}/bin/playerctl play-pause"), pressed)
+    hl.bind("XF86AudioNext", hl.dsp.exec_cmd("${pkgs.playerctl}/bin/playerctl next"), pressed)
+    hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("${pkgs.playerctl}/bin/playerctl previous"), pressed)
   '';
 }
