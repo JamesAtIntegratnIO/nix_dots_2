@@ -80,6 +80,33 @@ let
         };
       };
     };
+  # github_runner_up (the instance's daemon is running) and github_runner_busy
+  # (it has a job: a Runner.Worker under its directory is alive), every
+  # minute, into host-metrics.nix's textfile directory. The cluster alerts on
+  # an instance that is down and the landing page shows both. Written to a
+  # temporary name and moved, so node_exporter never reads half a file.
+  runnerMetrics = pkgs.writeShellScript "runner-metrics" ''
+    set -u
+    dir=/var/db/node-exporter-textfile
+    mkdir -p "$dir"
+    tmp=$(/usr/bin/mktemp "$dir/.github_runners.XXXXXX")
+    {
+      echo '# HELP github_runner_up Whether the runner instance is running.'
+      echo '# TYPE github_runner_up gauge'
+      for i in ${lib.escapeShellArgs instances}; do
+        if /bin/launchctl print "system/io.integratn.${runnerUser}.$i" 2>/dev/null | /usr/bin/grep -q 'state = running'; then up=1; else up=0; fi
+        echo "github_runner_up{runner=\"$i\"} $up"
+      done
+      echo '# HELP github_runner_busy Whether the runner instance is running a job.'
+      echo '# TYPE github_runner_busy gauge'
+      for i in ${lib.escapeShellArgs instances}; do
+        if /usr/bin/pgrep -f "${runnerHome}/actions-runner/$i/bin/Runner.Worker" >/dev/null; then busy=1; else busy=0; fi
+        echo "github_runner_busy{runner=\"$i\"} $busy"
+      done
+    } > "$tmp"
+    /bin/chmod 0644 "$tmp"
+    /bin/mv "$tmp" "$dir/github_runners.prom"
+  '';
 in
 {
   # The account the runners run as: no shell and no password, because nothing
@@ -122,6 +149,17 @@ in
         ProcessType = "Background";
         StandardOutPath = "/var/log/docker-${runnerUser}-socket.log";
         StandardErrorPath = "/var/log/docker-${runnerUser}-socket.err";
+      };
+    };
+
+    runner-metrics = {
+      command = "${runnerMetrics}";
+      serviceConfig = {
+        Label = "io.integratn.${runnerUser}.metrics";
+        StartInterval = 60;
+        RunAtLoad = true;
+        ProcessType = "Background";
+        StandardErrorPath = "/var/log/${runnerUser}-metrics.err";
       };
     };
   } // builtins.listToAttrs (map runnerDaemon instances);

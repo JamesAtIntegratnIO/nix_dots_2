@@ -17,6 +17,7 @@ in
     ../../modules/nixos/core/locale.nix
     ../../modules/nixos/core/nix.nix
     ../../modules/nixos/github-runner.nix
+    ../../modules/nixos/host-metrics.nix
   ];
 
   networking.hostName = "pitdroid";

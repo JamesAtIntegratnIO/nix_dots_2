@@ -14,6 +14,7 @@ in
     ./local-ai.nix
     ./docker.nix
     ./github-runner.nix
+    ./host-metrics.nix
     ./tmp-sweep.nix
     ./linux-builder.nix
   ];

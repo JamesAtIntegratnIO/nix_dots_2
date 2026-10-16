@@ -78,6 +78,36 @@ let
     df -h /tmp | tail -1
   '';
 
+  # github_runner_up (the instance's unit is active) and github_runner_busy (a
+  # Runner.Worker is alive in its cgroup), every minute, into host-metrics.nix's
+  # textfile directory. The same two series the Mac writes, so one alert and
+  # one landing-page row cover both hosts.
+  runnerMetrics = pkgs.writeShellScript "runner-metrics" ''
+    set -u
+    export PATH=${lib.makeBinPath [ pkgs.coreutils pkgs.systemd pkgs.procps pkgs.gnugrep ]}
+    dir=/var/lib/node-exporter-textfile
+    mkdir -p "$dir"
+    tmp=$(mktemp "$dir/.github_runners.XXXXXX")
+    {
+      echo '# HELP github_runner_up Whether the runner instance is running.'
+      echo '# TYPE github_runner_up gauge'
+      for i in ${lib.escapeShellArgs (builtins.attrNames instances)}; do
+        if systemctl is-active --quiet "github-runner-$i.service"; then up=1; else up=0; fi
+        echo "github_runner_up{runner=\"$i\"} $up"
+      done
+      echo '# HELP github_runner_busy Whether the runner instance is running a job.'
+      echo '# TYPE github_runner_busy gauge'
+      for i in ${lib.escapeShellArgs (builtins.attrNames instances)}; do
+        busy=0
+        procs=/sys/fs/cgroup/system.slice/github-runner-$i.service/cgroup.procs
+        if [ -r "$procs" ] && [ -s "$procs" ] && ps -o comm= -p "$(paste -sd, "$procs")" | grep -qx 'Runner.Worker'; then busy=1; fi
+        echo "github_runner_busy{runner=\"$i\"} $busy"
+      done
+    } > "$tmp"
+    chmod 0644 "$tmp"
+    mv "$tmp" "$dir/github_runners.prom"
+  '';
+
   runner = instance: repo: {
     name = instance;
     value = {
@@ -239,6 +269,21 @@ in
     timerConfig = {
       OnBootSec = "5min";
       OnUnitActiveSec = "15min";
+    };
+  };
+
+  systemd.services.runner-metrics = {
+    description = "Write the runner instances' state for node_exporter";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = runnerMetrics;
+    };
+  };
+  systemd.timers.runner-metrics = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "1min";
+      OnUnitActiveSec = "1min";
     };
   };
 

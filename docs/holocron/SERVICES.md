@@ -172,3 +172,23 @@ for label in org.nixos.qdrant org.nixos.ollama; do
   echo
 done
 ```
+
+---
+
+## Host metrics (system daemons)
+
+Defined in `modules/darwin/host-metrics.nix` and `modules/darwin/github-runner.nix`. Unlike the AI services above these are `launchd` **system daemons**, because the runners they report on are system daemons too. pitdroid runs the same pair from `modules/nixos/host-metrics.nix`.
+
+| Daemon label | What it does | Listens |
+|---|---|---|
+| `io.integratn.node-exporter` | node_exporter, plus the textfile collector in `/var/db/node-exporter-textfile` | `127.0.0.1:9100` |
+| `io.integratn.prometheus-agent` | Prometheus in agent mode: scrapes node_exporter every 30s and remote-writes to `https://prom-remote.cluster.integratn.tech/api/v1/write` with `host=holocron`, job `host-node` | `127.0.0.1:9201` |
+| `io.integratn.ghrunner.metrics` | Every 60s writes `github_runner_up{runner}` and `github_runner_busy{runner}` into the textfile directory | — |
+
+Push, not scrape: holocron sits on the IoT VLAN, so the cluster never has to reach in. The job is `host-node`, not `node-exporter`, so kube-prometheus-stack's node rules don't treat these hosts as cluster nodes. Alerts and the landing page's Hosts tab live in gitops_homelab_2_0.
+
+```bash
+sudo launchctl print system/io.integratn.prometheus-agent | grep state
+curl -s 127.0.0.1:9100/metrics | grep github_runner_
+tail /var/log/prometheus-agent.log
+```
