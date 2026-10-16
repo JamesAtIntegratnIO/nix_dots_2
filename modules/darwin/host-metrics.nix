@@ -30,8 +30,17 @@ let
     ];
     remote_write = [ { url = "https://prom-remote.cluster.integratn.tech/api/v1/write"; } ];
   };
+  exporterLog = "/var/log/node-exporter.log";
 in
 {
+  # launchd opens StandardErrorPath as the job's user, and nobody cannot create
+  # files in /var/log: without this the job exits 78 (EX_CONFIG) before
+  # node_exporter starts and the agent ships only up=0.
+  system.activationScripts.extraActivation.text = lib.mkAfter ''
+    /usr/bin/touch ${exporterLog}
+    /usr/sbin/chown nobody:nobody ${exporterLog}
+  '';
+
   launchd.daemons.node-exporter = {
     command = lib.escapeShellArgs [
       "${pkgs.prometheus-node-exporter}/bin/node_exporter"
@@ -44,7 +53,7 @@ in
       KeepAlive = true;
       RunAtLoad = true;
       ProcessType = "Background";
-      StandardErrorPath = "/var/log/node-exporter.log";
+      StandardErrorPath = exporterLog;
     };
   };
 
