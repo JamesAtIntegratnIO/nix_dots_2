@@ -122,7 +122,9 @@
       packages.aarch64-linux.probedroid-image =
         inputs.self.nixosConfigurations.probedroid-image.config.system.build.sdImage;
 
-      formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt-tree;
+      formatter = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-darwin" ] (
+        sys: nixpkgs.legacyPackages.${sys}.nixfmt-tree
+      );
 
       # The same tools on carbonite (x86_64-linux) and on holocron.
       devShells = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-darwin" ] (
