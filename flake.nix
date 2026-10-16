@@ -124,18 +124,23 @@
 
       formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt-tree;
 
-      devShells.${system}.default =
+      # The same tools on carbonite (x86_64-linux) and on holocron.
+      devShells = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-darwin" ] (
+        sys:
         let
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = nixpkgs.legacyPackages.${sys};
         in
-        pkgs.mkShellNoCC {
-          packages = with pkgs; [
-            deadnix
-            git
-            nil
-            nixfmt-tree
-            statix
-          ];
-        };
+        {
+          default = pkgs.mkShellNoCC {
+            packages = with pkgs; [
+              deadnix
+              git
+              nil
+              nixfmt-tree
+              statix
+            ];
+          };
+        }
+      );
     };
 }
