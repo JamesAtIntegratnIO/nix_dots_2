@@ -192,3 +192,12 @@ sudo launchctl print system/io.integratn.prometheus-agent | grep state
 curl -s 127.0.0.1:9100/metrics | grep github_runner_
 tail /var/log/prometheus-agent.log
 ```
+
+## RustDesk
+
+`launchd.agents.rustdesk` in `modules/darwin/home/remote-dev.nix` runs RustDesk's direct server on port 21118 for carbonite over Tailscale. The agent has `KeepAlive = true` and `ThrottleInterval = 30`, and it clears stale `/tmp/RustDesk-<uid>` sockets when no RustDesk is running. On 2026-10-14 RustDesk exited 0 after an IPC "Address already in use" clash, and the old `SuccessfulExit = false` policy never restarted it.
+
+```bash
+launchctl print gui/$(id -u)/org.nix-community.home.rustdesk | grep -E 'state|last exit'
+launchctl kickstart -k gui/$(id -u)/org.nix-community.home.rustdesk
+```
