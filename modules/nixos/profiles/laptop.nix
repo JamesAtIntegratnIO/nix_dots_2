@@ -61,15 +61,28 @@ in
   # with the lid shut. Cinnamon's side is turned off in
   # home/boboysdadda/cinnamon.nix.
   services.logind.settings.Login = {
-    # On battery, a closed lid suspends to RAM and, if it is still shut an hour
-    # later, wakes just long enough to hibernate (see HibernateDelaySec). On AC
-    # there is nothing to save, so it stays in RAM and wakes instantly.
+    # A closed lid suspends to RAM and, once it has been off AC for an hour,
+    # wakes just long enough to hibernate, so the LUKS passphrase is needed
+    # again. On AC it stays in RAM and wakes instantly. Both cases use
+    # suspend-then-hibernate: logind picks the action once, at lid close, so a
+    # plain "suspend" on AC never hibernated when the charger was pulled while
+    # the lid stayed shut. HibernateOnACPower below keeps the AC case in RAM.
     HandleLidSwitch = "suspend-then-hibernate";
-    HandleLidSwitchExternalPower = "suspend";
+    HandleLidSwitchExternalPower = "suspend-then-hibernate";
     # "Docked" includes having a second display connected: keep working on it.
     HandleLidSwitchDocked = "ignore";
     # The 30s default swallows a lid close that follows shortly after a wake.
     HoldoffTimeoutSec = "5s";
   };
-  systemd.sleep.settings.Sleep.HibernateDelaySec = "1h";
+  systemd.sleep.settings.Sleep = {
+    HibernateDelaySec = "1h";
+    # While on AC the hour does not count down: systemd-sleep wakes briefly
+    # (lid still shut, nothing shown) to check the charger and goes back to
+    # RAM. The countdown starts at the first check after unplugging, so a
+    # laptop unplugged while asleep hibernates within about two hours.
+    # SuspendEstimationSec is how often it checks when it cannot estimate
+    # the battery's drain (the default is also 1h).
+    HibernateOnACPower = false;
+    SuspendEstimationSec = "30min";
+  };
 }
