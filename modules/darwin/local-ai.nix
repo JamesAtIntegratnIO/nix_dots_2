@@ -16,6 +16,19 @@ in
     /usr/sbin/chown -R ${username}:staff "/Users/${username}/Library/Logs/local-ai" "/Users/${username}/Library/Application Support/local-ai"
   '';
 
+  # An old LiteLLM agent outlived its module: nix-darwin no longer manages the
+  # plist, so it was never removed, and its package lost a dependency. launchd
+  # respawned it every ~10s for months (~776k exits, a 1.5 GB .err log) right
+  # up to the 2026-10-18 launchd SIGBUS panic. Boot it out and delete it.
+  system.activationScripts.postActivation.text = lib.mkAfter ''
+    staleLitellm="/Users/${username}/Library/LaunchAgents/org.nixos.litellm.plist"
+    if [ -e "$staleLitellm" ]; then
+      echo "removing stale org.nixos.litellm agent..." >&2
+      /bin/launchctl bootout "gui/$(/usr/bin/id -u ${username})/org.nixos.litellm" 2>/dev/null || true
+      /bin/rm -f "$staleLitellm"
+    fi
+  '';
+
   # Qdrant vector-database config.
   environment.etc."local-ai/qdrant.yaml".text = ''
     storage:
