@@ -35,6 +35,7 @@ let
     volHigh = icon "uf028";
     sun = icon "uf185";
     bolt = icon "uf0e7";
+    power = icon "uf011";
     battery = map icon [
       "uf244"
       "uf243"
@@ -156,6 +157,7 @@ let
         "wireplumber"
         "backlight"
         "battery"
+        "custom/power"
       ];
       "custom/logo" = {
         format = i.nixos;
@@ -200,6 +202,11 @@ let
           critical = 10;
         };
       };
+      "custom/power" = {
+        format = i.power;
+        tooltip = false;
+        on-click = "${powermenu}";
+      };
     }
   );
 
@@ -234,7 +241,8 @@ let
     #wireplumber { color: #${p.magenta}; }
     #wireplumber.muted { color: #${p.overlay}; }
     #backlight { color: #${p.amber}; }
-    #battery { color: #${p.green}; padding-right: 12px; }
+    #battery { color: #${p.green}; }
+    #custom-power { color: #${p.magenta}; padding: 0 12px 0 9px; }
     #battery.warning { color: #${p.amber}; }
     #battery.critical { color: #${p.void}; background: #${p.red}; }
   '';
@@ -274,6 +282,34 @@ let
     exec rofi -config /etc/rofi/config.rasi -show drun -display-drun apps \
       -theme-str 'window { width: 640px; }'
   '';
+
+  # Lock, suspend, hibernate, power profile, log out, reboot, power off: the
+  # PocketTerm's quick-menu helpers and rofi theme with this session's
+  # actions. A second press closes it, like the launcher.
+  powermenu = lib.getExe (
+    pkgs.writeShellApplication {
+      name = "hypr-powermenu";
+      runtimeInputs = with pkgs; [
+        rofi
+        libnotify
+        procps
+        gnused
+        nettools
+        systemd
+        power-profiles-daemon
+        osConfig.programs.hyprland.package
+      ];
+      runtimeEnv = {
+        QUICKMENU_COMMON = "${../../modules/nixos/profiles/quickmenus/common.sh}";
+        QM_ACCENT = "#${p.cyan}";
+        QM_OK = "#${p.green}";
+        QM_WARN = "#${p.amber}";
+        QM_HOT = "#${p.magenta}";
+        QM_DIM = "#${p.subtext}";
+      };
+      text = builtins.readFile ./hypr-powermenu.sh;
+    }
+  );
 
   autostart = [
     # Lets portals and other D-Bus-activated services find the session.
@@ -546,6 +582,7 @@ in
       hl.bind("CTRL + SUPER + F", toggle_space)
       hl.bind("CTRL + SUPER + Q", hl.dsp.window.close())
       hl.bind("CTRL + SUPER + L", hl.dsp.exec_cmd("loginctl lock-session"))
+      hl.bind("CTRL + SUPER + E", hl.dsp.exec_cmd("${powermenu}"))
     end)
 
     local in_remote = nil -- unknown until the first sync, which always sets it
@@ -585,7 +622,7 @@ in
     hl.bind(mod .. " + V", hl.dsp.window.float({ action = "toggle" }))
     hl.bind(mod .. " + J", hl.dsp.layout("togglesplit"))
     hl.bind(mod .. " + L", hl.dsp.exec_cmd("loginctl lock-session"))
-    hl.bind(mod .. " + SHIFT + E", hl.dsp.exit())
+    hl.bind(mod .. " + SHIFT + E", hl.dsp.exec_cmd("${powermenu}"))
     hl.bind("Print", hl.dsp.exec_cmd("${screenshot}"), { submap_universal = true })
 
     for _, direction in ipairs({ "left", "right", "up", "down" }) do
