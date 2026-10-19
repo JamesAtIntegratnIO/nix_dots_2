@@ -32,6 +32,13 @@ in
   # when to hibernate.
   boot.resumeDevice = "/dev/mapper/luks-98f0177e-68cc-4775-bdf2-fd6a2b55fe30";
 
+  # The laptop follows the local time zone when it travels.
+  # automatic-timezoned asks geoclue where it is (nearby Wi-Fi looked up on
+  # beaconDB) and sets the zone through systemd-timedated, so it lands in
+  # /etc/localtime for Cinnamon and Hyprland alike. It overrides the home
+  # zone in modules/nixos/core/locale.nix.
+  services.automatic-timezoned.enable = true;
+
   users.users.boboysdadda = {
     isNormalUser = true;
     description = "boboysdadda";

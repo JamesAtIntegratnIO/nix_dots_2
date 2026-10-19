@@ -1,5 +1,9 @@
+{ lib, ... }:
+
 {
-  time.timeZone = "America/Denver";
+  # Home time. A machine that travels turns on services.automatic-timezoned,
+  # which replaces this with the zone it finds itself in.
+  time.timeZone = lib.mkDefault "America/Denver";
 
   i18n.defaultLocale = "en_US.UTF-8";
   i18n.extraLocaleSettings = {
