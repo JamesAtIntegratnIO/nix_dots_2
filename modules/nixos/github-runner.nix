@@ -29,6 +29,26 @@ let
   # They still take any other Linux job when no gate is waiting.
   gateInstances = [ "specmarshal-7" "specmarshal-8" ];
 
+  # Even two gates alone overran the twelve vCPU: each starts a test worker per
+  # core it sees, and an image build beside them made it several processes per
+  # core. On 2026-10-20 core main went red twice that way with every assertion
+  # passing (IntegratnIO/specmarshal#817). So each gate gets four cores of its
+  # own and everything else shares the last four, with no overlap: a gate alone
+  # runs on four cores rather than twelve, slower but never starved. Node sizes
+  # its workers to the set through os.availableParallelism(), and the gate also
+  # reads SPECMARSHAL_GATE_CPUS and prints it in its log.
+  gateCpus = {
+    "specmarshal-7" = "0-3";
+    "specmarshal-8" = "4-7";
+  };
+  gateCpuCount = "4";
+  # The image jobs, runwright, dockerd and every container. Builds run in
+  # buildkit containers and the gates' tests start containers of their own;
+  # docker puts those in scopes of their own beside docker.service, not in it
+  # or in the runner that asked for them, so they get a slice (dockerSlice).
+  sharedCpus = "8-11";
+  dockerSlice = "docker-containers";
+
   instances = {
     runwright = "JamesAtIntegratnIO/runwright";
   } // builtins.listToAttrs (
@@ -139,7 +159,11 @@ let
       # One docker config per instance, so concurrent jobs don't share buildx
       # state or registry logins. See the darwin module for the failure this
       # avoids.
-      extraEnvironment.DOCKER_CONFIG = "/var/lib/github-runner/${instance}/.docker";
+      extraEnvironment = {
+        DOCKER_CONFIG = "/var/lib/github-runner/${instance}/.docker";
+      }
+      // lib.optionalAttrs (gateCpus ? ${instance}) { SPECMARSHAL_GATE_CPUS = gateCpuCount; };
+      serviceOverrides.AllowedCPUs = gateCpus.${instance} or sharedCpus;
       # The module's system-call filter refuses capset, and the kernel kills
       # what calls it. Chromium's page processes call it to drop what they
       # hold, so every page the gates' stories opened died at once ("Target
@@ -220,6 +244,10 @@ in
   # by the run that built it and never again, so a day is already generous.
   virtualisation.docker = {
     enable = true;
+    # New containers go under the slice below rather than straight under
+    # system.slice. Running ones keep their cgroup until they restart, which a
+    # rebuild that changes this file does (live-restore is off).
+    daemon.settings.cgroup-parent = "${dockerSlice}.slice";
     autoPrune = {
       enable = true;
       dates = "daily";
@@ -229,6 +257,13 @@ in
         "until=24h"
       ];
     };
+  };
+
+  # dockerd and its containers stay off the gates' cores (see gateCpus).
+  systemd.services.docker.serviceConfig.AllowedCPUs = sharedCpus;
+  systemd.slices.${dockerSlice} = {
+    description = "Docker containers, held off the gate runners' cores";
+    sliceConfig.AllowedCPUs = sharedCpus;
   };
 
   # A day of cache from the runners is still most of the disk, so the cache is
