@@ -13,6 +13,10 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
+    # Tailscale for every NixOS host (modules/nixos/profiles/tailscale.nix),
+    # bumped on its own so security fixes don't wait on a full nixpkgs update.
+    tailscale-nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+
     # Keep the Mac's existing versions independent of the NixOS laptop.
     darwin-nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     darwin-home-manager = {

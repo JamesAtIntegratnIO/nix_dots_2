@@ -226,6 +226,17 @@ Existing macOS Remote Login supplies SSH:
 ssh jdreier@<holocron-tailscale-ip>
 ```
 
+Tailscale SSH stays off. Every NixOS host runs `tailscale set --ssh=false` at
+boot (`modules/nixos/profiles/tailscale.nix`), and an assertion fails the build
+if any host adds `--ssh` to its Tailscale flags. Unpatched Tailscale SSH flaws
+were published in October 2026; plain OpenSSH with keys covers remote shells.
+
+Every host, the Mac included, takes the Tailscale package from the
+`tailscale-nixpkgs` input (nixos-unstable), so the Pis match the other hosts
+even though the rest of their system comes from nixos-raspberrypi's nixpkgs.
+For a Tailscale security fix, run `nix flake update tailscale-nixpkgs` without
+bumping the rest of the system.
+
 The NixOS firewall allows Tailscale's encrypted UDP transport on port 41641.
 Access to services is still controlled by their listeners, host firewalls, and
 your tailnet policy. Test access from another network before relying on it
