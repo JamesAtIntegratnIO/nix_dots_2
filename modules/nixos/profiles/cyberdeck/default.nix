@@ -454,7 +454,6 @@ in
   # Quiet boot: the vendor default (loglevel=7) floods the panel with kernel
   # debug output. Errors still reach the console.
   boot.consoleLogLevel = 3;
-  boot.initrd.verbose = false;
   boot.kernelParams = [
     "quiet"
     "udev.log_level=3"

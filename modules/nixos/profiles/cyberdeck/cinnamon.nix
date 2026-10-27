@@ -114,7 +114,6 @@ in
   };
   boot.initrd.kernelModules = [ "i915" ];
   boot.consoleLogLevel = 3;
-  boot.initrd.verbose = false;
   boot.kernelParams = [
     "quiet"
     "splash"
