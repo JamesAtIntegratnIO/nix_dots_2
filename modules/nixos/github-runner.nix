@@ -183,6 +183,19 @@ let
         "~setdomainname"
         "~sethostname"
       ];
+      # The gates run their stories in a network of their own (the core's
+      # scripts/private-network.mjs, `unshare -rn`): Chromium aborts every
+      # request in flight, localhost included, with ERR_NETWORK_CHANGED when
+      # an address comes or goes on the host, and the builds and sandbox
+      # tests here add and remove container interfaces all the time, so a
+      # story file failed to load and the run stalled
+      # (IntegratnIO/specmarshal#827). The module's RestrictNamespaces
+      # refuses the unshare, and the story run falls back to the host's
+      # network. This lets the gate instances make a user namespace and a
+      # network namespace and nothing else; the rest stay as the module
+      # sets them.
+      serviceOverrides.RestrictNamespaces =
+        if builtins.elem instance gateInstances then "user net" else true;
     };
   };
 in
