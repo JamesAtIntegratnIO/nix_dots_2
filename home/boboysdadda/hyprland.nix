@@ -66,7 +66,7 @@ let
     general {
       lock_cmd = ${lock}
       before_sleep_cmd = loginctl lock-session
-      after_sleep_cmd = ${panels "on"}
+      after_sleep_cmd = ${panels "on"}; ${barResync}
     }
     listener {
       timeout = 300
@@ -139,6 +139,23 @@ let
 
   # --- Bar --------------------------------------------------------------------
   # One per monitor, each listing only its own monitor's workspaces.
+
+  # Waybar can come out of a wake and undock still running with no bar on the
+  # panel, and only a reload brings it back. Monitors settle over a moment, so
+  # this waits, then reloads only if a monitor really has no bar.
+  barResync = pkgs.writeShellScript "hypr-bar-resync" ''
+    sleep 2
+    hyprctl=${osConfig.programs.hyprland.package}/bin/hyprctl
+    missing=$(${pkgs.jq}/bin/jq -n --slurpfile monitors <("$hyprctl" -j monitors) \
+      --slurpfile layers <("$hyprctl" -j layers) '
+        $monitors[0][].name as $name
+        | select(any($layers[0][$name].levels[]?[]?; .namespace == "waybar") | not)
+        | $name')
+    if [[ -n $missing ]]; then
+      ${pkgs.procps}/bin/pkill -USR2 -f '^${pkgs.waybar}/bin/waybar '
+    fi
+  '';
+
   waybarConfig = pkgs.writeText "waybar-config" (
     builtins.toJSON {
       layer = "top";
@@ -377,18 +394,24 @@ in
       end
     end
 
+    local function resync_bar()
+      hl.exec_cmd("${barResync}")
+    end
+
     sync_panel()
-    hl.bind("switch:on:Lid Switch", function() sync_panel(true) end, { locked = true, submap_universal = true })
-    hl.bind("switch:off:Lid Switch", function() sync_panel(false) end, { locked = true, submap_universal = true })
+    hl.bind("switch:on:Lid Switch", function() sync_panel(true); resync_bar() end, { locked = true, submap_universal = true })
+    hl.bind("switch:off:Lid Switch", function() sync_panel(false); resync_bar() end, { locked = true, submap_universal = true })
     hl.on("monitor.added", function(monitor)
       if monitor.name ~= panel then
         sync_panel()
       end
+      resync_bar()
     end)
     hl.on("monitor.removed", function(monitor)
       if monitor.name ~= panel then
         sync_panel(nil, monitor.name)
       end
+      resync_bar()
     end)
 
     hl.env("XCURSOR_THEME", "Bibata-Modern-Classic")
