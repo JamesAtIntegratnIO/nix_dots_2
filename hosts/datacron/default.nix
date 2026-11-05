@@ -11,13 +11,16 @@
 let
   sshKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIESq1wdY7diOloASvawJgjjThP6kzDWC/J3NIzZu5QVe james@integratn.io";
 
-  # The one list that changes at cutover. 10.0.3.5 is the admin address and
-  # stays first. At cutover CT101 and CT111 are stopped (onboot 0) and their
-  # addresses are added here, 10.0.3.1 and 10.0.3.24, so no client gets
-  # repointed: sonarr, radarr, umami, specmarshal and the cluster's
+  # 10.0.3.5 is the admin address and stays first. At the cutover on
+  # 2026-11-05, CT101 and CT111 were stopped (onboot 0) and their addresses,
+  # 10.0.3.1 and 10.0.3.24, moved here, so no client got repointed: sonarr, radarr, umami, specmarshal and the cluster's
   # 10.0.3.1/32 network policies keep 10.0.3.1, and authentik's secret and
   # paperless on Tower keep 10.0.3.24.
-  addresses = [ "10.0.3.5" ];
+  addresses = [
+    "10.0.3.5"
+    "10.0.3.1"
+    "10.0.3.24"
+  ];
 in
 {
   imports = [
