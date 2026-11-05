@@ -16,6 +16,45 @@ copied from the old servers in step 5.
 
 Every database from both servers comes over. Nothing is dropped.
 
+## What actually happened (2026-11-05)
+
+The cutover is done. CT101 and CT111 are stopped with `onboot 0`, and datacron
+answers on `10.0.3.5`, `10.0.3.1` and `10.0.3.24` (the `addresses` list in
+`default.nix`). The steps below are the original plan. The differences:
+
+- **Step 0's vzdump went to Tower, not `local`, and hung Tower.** `vzdump 101 111
+  --storage tower-backups` started about 17:55 UTC. Tower's USB boot flash
+  (passed through to VM 100) reset every ~21 s, NFS stopped answering at 17:57,
+  and the guest froze. CT101's dump finished; CT111's did not. Recovery:
+  `kill -9` the vzdump, `umount -f -l` the share (vzdump then removed its own
+  snapshot and lock), and `qm reset 100`, which was followed by a parity check.
+  The Proxmox `tower-backups` storage and the `pg-nightly` job are disabled.
+  **Nothing backs up to Tower.**
+- **Tower ship is off.** `backup.nix` keeps the nightly local dumps, and the
+  copy to Tower sits behind `shipToTower = false`. The off-box copy is going to
+  be a nightly pull from holocron, which isn't built yet.
+- **No client was repointed.** datacron took over both old addresses instead of
+  repointing authentik and paperless (steps 8 and 9 merged into one window).
+- **Every client is md5** (the map over `allowedClients`) until the roles are
+  re-hashed (step 6 not done). `password_encryption` stays scram.
+- **Freezing writes was done at the DB, not by scaling apps.** Every
+  non-postgres role on both CTs was set `NOLOGIN` and its sessions were ended,
+  and the apps kept running through the window. Rollback before the IP move:
+  `ALTER ROLE … LOGIN` for the roles that had it. CT101: authentik backstage
+  hassio keycloak_user n8n paperless radarr root scanopy sonarr specmarshal
+  terraform umami. CT111: authentik paperclip paperless root.
+- **Timeline (UTC):** 18:28:49 roles blocked; 18:29:15–18:32:13 final copies
+  of sonarr, sonarrlogs, radarr, radarrlogs, umami, specmarshal, authentik and
+  paperless (drop, create with owner, dump into restore, ANALYZE); all 31
+  databases matched the frozen sources table for table; 18:32:59 CTs shut down;
+  `5aaaf9b` deployed with the extra addresses, then `arping -U` for both.
+- **`max_connections` 100 → 200 (`a7380bb`).** authentik reconnected with about
+  90 idle connections, filled 100 and locked itself out (health 500). After the
+  restart it settled at about 9 connections, and its health was 200 by 18:43.
+
+Still open: re-hash the md5 roles (the terraform one is James's), build the
+off-box backup, and retire the CTs after two weeks (step 12).
+
 ## The databases and where each comes from
 
 | On datacron | From | Owner | In use (2026-11-05) |
