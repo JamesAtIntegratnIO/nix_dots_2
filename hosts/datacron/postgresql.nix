@@ -210,8 +210,10 @@ in
     # else.
     systemd.services.postgresql-db-owners = {
       description = "Set Postgres database owners";
-      after = [ "postgresql.service" ];
-      requires = [ "postgresql.service" ];
+      # postgresql-setup is where NixOS runs ensureUsers/ensureDatabases;
+      # ordering after postgresql alone races it and finds no roles yet.
+      after = [ "postgresql-setup.service" ];
+      requires = [ "postgresql-setup.service" ];
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
         Type = "oneshot";
