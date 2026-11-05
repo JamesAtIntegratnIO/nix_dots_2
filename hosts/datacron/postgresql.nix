@@ -163,7 +163,9 @@ in
         ssl_key_file = "${sslDir}/server.key";
         password_encryption = "scram-sha-256";
 
-        max_connections = 100;
+        # authentik alone opened ~90 connections reconnecting after the
+        # 2026-11-05 cutover, which filled 100 and locked it out.
+        max_connections = 200;
 
         # Sized for 2 vCPU / 4 GB with nothing else on the box.
         shared_buffers = "1GB";
