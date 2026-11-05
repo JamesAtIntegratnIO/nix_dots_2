@@ -85,6 +85,13 @@
         modules = [ ./hosts/pitdroid ];
       };
 
+      # The homelab's Postgres server, a VM next to pitdroid on Proxmox.
+      nixosConfigurations.datacron = nixpkgs.lib.nixosSystem {
+        inherit system;
+        specialArgs = { inherit inputs; };
+        modules = [ ./hosts/datacron ];
+      };
+
       # PocketTerm35 handheld (Raspberry Pi 5). Uses the raspberrypi flake's
       # system builder so the vendor kernel/firmware overlays are in scope; it
       # pins aarch64-linux and its own nixpkgs internally.
