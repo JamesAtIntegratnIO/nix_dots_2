@@ -228,7 +228,7 @@ that address over. CT101 has to be down first, so these move together.
    data must be dropped and recreated first (`systemctl restart postgresql`
    recreates it via ensureDatabases, then `postgresql-db-owners` sets its owner).
 3. Take CT101 off the address: `ssh root@192.168.0.10 'pct shutdown 101 && pct set 101 --onboot 0'`.
-4. In `hosts/datacron/default.nix` set `address = "10.0.3.1";`, commit, push, and
+4. In `hosts/datacron/default.nix` add `"10.0.3.1"` (and `"10.0.3.24"` at cutover B) to `addresses`, keeping `"10.0.3.5"` first,, commit, push, and
    deploy. The SSH target is still `10.0.3.5` until the switch, then `10.0.3.1`.
 5. Run step 10's row counts for the six databases.
 6. Scale the four apps back to 1 and resume auto-sync. Check Sonarr/Radarr
@@ -277,7 +277,11 @@ planner statistics, and Sonarr is slow until it has them.
 ## 11. Backups after the move
 
 - `postgresqlBackup` dumps every database nightly at 02:15 to
-  `/var/backup/postgresql`, and `postgresql-backup-ship` copies them at 03:30
+  `/var/backup/postgresql`. The copy to Tower (`postgresql-backup-ship`) is
+  switched off (`shipToTower = false` in `backup.nix`) since a vzdump to
+  Tower's NFS export hung Tower on 2026-11-05. Nothing writes to Tower without
+  James's OK; the off-box copy is going to be a nightly pull from holocron.
+  When the ship is on, it copies them at 03:30
   to Tower under `backups/datacron/<date>/`, keeping 30 days. Check after the
   first night:
   `ssh root@10.0.0.12 'ls -la /mnt/user/data/backups/datacron/$(date +%F)'`.

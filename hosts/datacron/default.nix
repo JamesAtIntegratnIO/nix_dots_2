@@ -11,11 +11,13 @@
 let
   sshKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIESq1wdY7diOloASvawJgjjThP6kzDWC/J3NIzZu5QVe james@integratn.io";
 
-  # The one line that changes at cutover. While the databases are restored the
-  # VM sits on a spare address; at cutover CT101 is stopped and this becomes
-  # 10.0.3.1, so sonarr, radarr, umami, specmarshal and the cluster's
-  # 10.0.3.1/32 network policies need no change.
-  address = "10.0.3.5";
+  # The one list that changes at cutover. 10.0.3.5 is the admin address and
+  # stays first. At cutover CT101 and CT111 are stopped (onboot 0) and their
+  # addresses are added here, 10.0.3.1 and 10.0.3.24, so no client gets
+  # repointed: sonarr, radarr, umami, specmarshal and the cluster's
+  # 10.0.3.1/32 network policies keep 10.0.3.1, and authentik's secret and
+  # paperless on Tower keep 10.0.3.24.
+  addresses = [ "10.0.3.5" ];
 in
 {
   imports = [
@@ -35,7 +37,13 @@ in
   # Defaults: databases = "all", users = "all", method = "scram-sha-256",
   # ssl = false (host; true makes it hostssl). Adding or removing a client
   # is an edit here and nowhere else.
-  homelab.postgres.allowedClients = [
+  #
+  # Every entry is md5 for now (the map at the end). The roles came over from
+  # the old servers with md5 hashes, and md5 accepts both md5 and scram hashes,
+  # so nothing breaks at cutover. password_encryption stays scram, so any
+  # password set here is stored as scram. Drop the map once
+  # `select rolname from pg_authid where rolpassword like 'md5%'` is empty.
+  homelab.postgres.allowedClients = map (c: c // { method = "md5"; }) [
     {
       name = "k8s-nodes";
       # the-cluster (authentik, umami, specmarshal) and vcluster-media
@@ -64,9 +72,7 @@ in
       address = "192.168.0.57/32";
       # OpenTofu's pg backend runs from here with PGUSER/PGPASSWORD from
       # gitops_homelab_2_0's secrets.env, and that role still has the md5
-      # hash copied from CT101. md5 accepts md5 and scram hashes alike;
-      # switch to scram-sha-256 once the role has been re-hashed.
-      method = "md5";
+      # hash copied from CT101.
     }
   ];
 
@@ -79,7 +85,7 @@ in
   networking.useNetworkd = true;
   systemd.network.networks."10-lan" = {
     matchConfig.Name = "en*";
-    address = [ "${address}/9" ];
+    address = map (a: "${a}/9") addresses;
     gateway = [ "10.0.0.1" ];
     dns = [ "10.0.0.1" ];
   };
