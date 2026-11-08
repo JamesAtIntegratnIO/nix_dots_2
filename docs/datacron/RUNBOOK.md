@@ -334,6 +334,14 @@ planner statistics, and Sonarr is slow until it has them.
   storage first, e.g. `pvesm add nfs tower-backups --server 10.0.0.12
   --export /mnt/user/data --content backup`, then use `--storage tower-backups`.
   Drop 101 and 111 from the job when they're deleted.
+- datacron also takes in other machines' backups. `hermes-backup.nix` exports
+  `/srv/backups/hermes` over NFSv4 to talos-pi5-1 (10.0.4.104) only, port
+  2049 open to that address alone, every uid squashed to `hermes-backup`
+  (10000), directory 0700. Hermes Agent's nightly CronJob in the cluster
+  writes `hermes-backup-<time>.zip` there and keeps the newest 14. Check:
+  `ssh root@10.0.3.5 'ls -la /srv/backups/hermes'`. These zips are on the
+  same box as the Postgres dumps, so they are off the Pi but not off the
+  Proxmox host.
 
 ## 12. Retire the old servers
 
