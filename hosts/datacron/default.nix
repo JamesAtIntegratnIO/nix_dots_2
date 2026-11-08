@@ -29,6 +29,7 @@ in
     ./disko.nix
     ./postgresql.nix
     ./backup.nix
+    ./hermes-backup.nix
     ../../modules/nixos/core/locale.nix
     ../../modules/nixos/core/nix.nix
     ../../modules/nixos/host-metrics.nix
