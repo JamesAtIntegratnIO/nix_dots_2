@@ -31,6 +31,7 @@ let
     backstage.createdb = true;
     hassio.createdb = true;
     keycloak_user = { };
+    mealie = { };
     n8n = { };
     paperclip = { };
     paperless = { };
@@ -84,6 +85,8 @@ let
     terraform_media_cluster = "terraform";
     terraform_state = "terraform";
     umami = "umami";
+    # added after the cutover
+    mealie = "mealie";
   };
 
   sslDir = "/var/lib/postgresql/ssl";
